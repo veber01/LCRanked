@@ -1,0 +1,12 @@
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.csproj.AssemblyReference.cache
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.GeneratedMSBuildEditorConfig.editorconfig
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.AssemblyInfoInputs.cache
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.AssemblyInfo.cs
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.csproj.CoreCompileInputs.cache
+D:\Lethal Company\LCRanked\mod\bin\Debug\netstandard2.1\LCRanked.deps.json
+D:\Lethal Company\LCRanked\mod\bin\Debug\netstandard2.1\LCRanked.dll
+D:\Lethal Company\LCRanked\mod\bin\Debug\netstandard2.1\LCRanked.pdb
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.dll
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.pdb
+D:\Lethal Company\LCRanked\mod\bin\Debug\netstandard2.1\Assembly-CSharp-firstpass.dll
+D:\Lethal Company\LCRanked\mod\obj\Debug\netstandard2.1\LCRanked.csproj.Up2Date
