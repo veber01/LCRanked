@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections;
 using UnityEngine;
 using Unity.Netcode;
+using System.Linq;
 
 namespace LCRanked
 {
@@ -57,8 +58,5 @@ namespace LCRanked
             DeterministicEnemyPlanner.ranplan = false;
             return;
         }
-
     }
-
-
 }

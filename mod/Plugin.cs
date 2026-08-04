@@ -10,6 +10,10 @@ using GameNetcodeStuff;
 using Unity.Netcode;
 using System;
 using LCRanked.UI;
+using System.Security.Cryptography;
+using System.Text;
+using Steamworks;
+using Steamworks.Data;
 
 
 namespace LCRanked
@@ -19,7 +23,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.2.85";
+        public const string PluginVersion = "0.2.88";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -36,6 +40,7 @@ namespace LCRanked
         //public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
         public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
         public string LocalPlayerName = "Player";
+
 
         private Harmony _harmony;
         private bool? _pendingQueueToggle;
@@ -87,7 +92,6 @@ namespace LCRanked
             InitializePlugin();
 
         }
-
         private void RestoreBackupSave()
         {
             string backupFile = "Save1Temp";
@@ -172,11 +176,19 @@ namespace LCRanked
                 if (scene.name == "MainMenu")
                 {
                     RequestPlayerStats();
+                    StartCoroutine(CreateLeaderboardLinkNextFrame());
+                    //LocalPlayerId = Steamworks.SteamClient.SteamId.ToString();
                 }
                 return;
             }
             LocalPlayerName = GameNetworkManager.Instance.username;
             EnsureDebugUI();
+        }
+
+        private IEnumerator CreateLeaderboardLinkNextFrame()
+        {
+            yield return null;
+            LeaderboardMenuLink.Create();
         }
 
 
@@ -290,7 +302,7 @@ namespace LCRanked
         {
             if (joinQueue)
             {
-                Network.JoinQueue(LocalPlayerId, LocalPlayerName);
+                Network.JoinQueue(LocalPlayerId, LocalPlayerName, LocalPlayerId);
                 _inQueue = true;
                 Log.LogInfo("[LCRanked] Sent join_queue request.");
             }
@@ -387,6 +399,13 @@ namespace LCRanked
                     NamePromptUI.Instance?.HandleResult(
                         msg["success"]?.ToObject<bool>() ?? false,
                         msg["error"]?.ToString());
+                    break;
+
+                case "leaderboard_page":
+                    var entries = msg["entries"]?.ToObject<LeaderboardWindowUI.JsonEntry[]>() ?? new LeaderboardWindowUI.JsonEntry[0];
+                    int page = msg["page"]?.ToObject<int>() ?? 1;
+                    int totalPages = msg["totalPages"]?.ToObject<int>() ?? 1;
+                    LeaderboardWindowUI.Instance?.HandlePageResult(page, totalPages, entries);
                     break;
             }
         }
@@ -515,9 +534,6 @@ namespace LCRanked
                 ui.StopQueueStatusPolling();
             }
         }
-
-
-
         public void HideMenu()
         {
             _menuOpen = false;

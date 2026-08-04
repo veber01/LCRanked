@@ -31,6 +31,7 @@ namespace LCRanked
             }
             PrepareRankedSave();
             GameNetworkManager.Instance.lobbyHostSettings = new HostSettings("Ranked", false, "");
+            LeaderboardMenuLink.Hide();
             GameNetworkManager.Instance.StartHost();
 
             return false;
@@ -86,7 +87,15 @@ namespace LCRanked
                 {
                     __instance.joinCrewButtonContainer.SetActive(false);
                 }
-                __instance.versionNumberText.text = "v81 LCR Alpha";
+
+                if (__instance.versionNumberText != null)
+                {
+                    __instance.versionNumberText.text = "v81 LCR 0.2.88";
+                }
+                else
+                {
+                    Plugin.Log.LogWarning("[LCRanked] versionNumberText was null on MenuManager.Start() - skipping version text override.");
+                }
             }
         }
 
@@ -106,23 +115,34 @@ namespace LCRanked
                     }
                 }
 
+                if (creditsTextObj == null)
+                {
+                    Plugin.Log.LogWarning("[LCRanked] Could not find 'CreditsText' - skipping");
+                    return;
+                }
+
                 var text = creditsTextObj.GetComponent<TMPro.TextMeshProUGUI>();
+                if (text == null)
+                {
+                    Plugin.Log.LogWarning("[LCRanked] 'CreditsText' object found but no TextMeshProUGUI - skipping.");
+                    return;
+                }
 
                 text.text =
                 @"Lethal Company Ranked 
 
-                Created by:
-                Happyness 
+        Created by:
+        Happyness 
 
-                Special Thanks:
-                Jyro (for ideas and inspiration)
-                Walfrody (for ideas and inspiration)
-                Resonance (for ideas and inspiration)
-                Crew Finder discord community
+        Special Thanks:
+        Jyro (for ideas and inspiration)
+        Walfrody (for ideas and inspiration)
+        Resonance (for ideas and inspiration)
+        Crew Finder discord community
 
-                and YOU
+        and YOU
 
-                ";
+        ";
             }
         }
     }

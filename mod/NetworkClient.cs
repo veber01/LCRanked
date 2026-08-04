@@ -297,9 +297,9 @@ namespace LCRanked
             }
         }
 
-        public void JoinQueue(string playerId, string playerName, string mode = "solo_2p")
+        public void JoinQueue(string playerId, string playerName, string deviceId, string mode = "solo_2p")
         {
-            _ = SendAsync(new { type = "join_queue", playerId, playerName, mode });
+            _ = SendAsync(new { type = "join_queue", playerId, playerName, deviceId, mode });
         }
 
         public void LeaveQueue(string playerId)
@@ -368,6 +368,37 @@ namespace LCRanked
             {
                 _log.LogWarning($"[LCRanked] Failed to fetch player stats: {ex.Message}");
             }
+        }
+
+// ------------------------- LEADERBOARD STUFF -------------------------
+        public async Task RequestLeaderboardAsync(int page, int limit)
+        {
+            if (!IsConnected) return;
+
+            try
+            {
+                var uri = new Uri(_serverUri, $"/api/leaderboard?page={page}&limit={limit}");
+                var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.LogWarning($"[LCRanked] Leaderboard request failed: {(int)response.StatusCode}");
+                    return;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var obj = JObject.Parse(content);
+                obj["type"] = "leaderboard_page";
+                IncomingMessages.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning($"[LCRanked] Failed to fetch leaderboard: {ex.Message}");
+            }
+        }
+
+        public void RequestLeaderboardPage(int page, int limit)
+        {
+            _ = RequestLeaderboardAsync(page, limit);
         }
     }
 }
