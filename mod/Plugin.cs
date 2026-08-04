@@ -1,19 +1,13 @@
 using System.Collections;
 using BepInEx;
-using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Newtonsoft.Json.Linq;
-using GameNetcodeStuff;
 using Unity.Netcode;
 using System;
 using LCRanked.UI;
-using System.Security.Cryptography;
-using System.Text;
-using Steamworks;
-using Steamworks.Data;
 
 
 namespace LCRanked
@@ -23,7 +17,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.2.88";
+        public const string PluginVersion = "0.2.89";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -43,13 +37,13 @@ namespace LCRanked
 
 
         private Harmony _harmony;
-        private bool? _pendingQueueToggle;
-        private bool _inQueue;
-        private bool _initialized;
+        public bool? _pendingQueueToggle;
+        public bool _inQueue;
+        public bool _initialized;
         public static bool track = false;
         public bool IsInQueue => _inQueue;
-        public int QueuePlayerCount { get; private set; }
-        public int PlayersInGameCount { get; private set; }
+        public int QueuePlayerCount;
+        public int PlayersInGameCount;
         public class PlayerStats
         {
             public string playerId;
@@ -69,8 +63,8 @@ namespace LCRanked
             public int leaderboardTotal;
         }
 
-        public PlayerStats LocalStats { get; private set; }
-        public bool HasStatsRecord { get; private set; }
+        public PlayerStats LocalStats;
+        public bool HasStatsRecord;
 
         public async void RequestPlayerStats()
         {
@@ -149,7 +143,7 @@ namespace LCRanked
             {
                 Network = new NetworkClient("https://discordbot-production-7184.up.railway.app", Log);
                 Network.SetPlayerId(LocalPlayerId);
-                Network.Connected += HandleNetworkConnected;
+                Network.Connected += Queue.HandleNetworkConnected;
                 _ = Network.ConnectAsync();
                 _harmony = new Harmony(PluginGuid);
                 _harmony.PatchAll(typeof(Plugin).Assembly);
@@ -217,271 +211,16 @@ namespace LCRanked
         {
             while (Network != null && Network.IncomingMessages.TryDequeue(out var msg))
             {
-                HandleServerMessage(msg);
+                Queue.HandleServerMessage(msg);
             }
-            FlushPendingQueueToggle();
+            Queue.FlushPendingQueueToggle();
 
-        }
-
-        public static void ToggleQueueFromMenu()
-        {
-            Plugin.Instance.ToggleQueue();
-
-            Plugin.Instance.RequestQueueStatus();
-
-        }
-
-        public async void RequestQueueStatus()
-        {
-            if (Network == null)
-            {
-                return;
-            }
-
-            if (!Network.IsConnected)
-            {
-                await Network.ConnectAsync();
-                return;
-            }
-
-            await Network.SendAsync(new { type = "queue_status", playerId = LocalPlayerId });
-        }
-
-        private void ToggleQueue()
-        {
-            if (Network == null)
-            {
-                return;
-            }
-
-            if (!Network.IsConnected)
-            {
-                if (Network.IsConnecting)
-                {
-                    _pendingQueueToggle = !_inQueue;
-                    return;
-                }
-
-                _pendingQueueToggle = !_inQueue;
-                _ = Network.ConnectAsync();
-                return;
-            }
-            ApplyQueueToggle(!_inQueue);
-        }
-
-        private void HandleNetworkConnected()
-        {
-            Log.LogInfo("[LCRanked] Network connected; processing pending queue action.");
-            StartCoroutine(DelayedQueueFlush());
-            RequestPlayerStats();
-        }
-
-        private IEnumerator DelayedQueueFlush()
-        {
-            yield return new WaitForSeconds(0.25f);
-            FlushPendingQueueToggle();
-        }
-
-        private void FlushPendingQueueToggle()
-        {
-            if (Network == null || !_pendingQueueToggle.HasValue)
-            {
-                return;
-            }
-            if (!Network.IsConnected)
-            {
-                return;
-            }
-
-            var pending = _pendingQueueToggle.Value;
-            _pendingQueueToggle = null;
-            ApplyQueueToggle(pending);
-        }
-
-        private void ApplyQueueToggle(bool joinQueue)
-        {
-            if (joinQueue)
-            {
-                Network.JoinQueue(LocalPlayerId, LocalPlayerName, LocalPlayerId);
-                _inQueue = true;
-                Log.LogInfo("[LCRanked] Sent join_queue request.");
-            }
-            else
-            {
-                Network.LeaveQueue(LocalPlayerId);
-                _inQueue = false;
-                Log.LogInfo("[LCRanked] Sent leave_queue request.");
-            }
-        }
-
-        private void HandleServerMessage(JObject msg)
-        {
-
-            string type = msg["type"]?.ToString();
-            switch (type)
-            {
-                case "queue_joined":
-                    _inQueue = true;
-                    QueuePlayerCount = msg["queueSize"]?.ToObject<int>() ?? QueuePlayerCount;
-                    break;
-
-                case "queue_left":
-                    _inQueue = false;
-                    QueuePlayerCount = msg["queueSize"]?.ToObject<int>() ?? QueuePlayerCount;
-                    break;
-
-                case "queue_status":
-                    QueuePlayerCount = msg["queueSize"]?.ToObject<int>() ?? QueuePlayerCount;
-                    PlayersInGameCount = msg["playersInGame"]?.ToObject<int>() ?? PlayersInGameCount;
-                    _inQueue = msg["inQueue"]?.ToObject<bool>() ?? _inQueue;
-                    break;
-
-                case "match_found":
-                    _inQueue = false;
-                    OnMatchFound(msg);
-                    track = true;
-                    DebugUI.SetMenuForAll(false);
-                    break;
-
-                case "match_start":
-                    OnMatchStart(msg);
-                    track = true;
-                    DebugUI.SetMenuForAll(false);
-                    break;
-
-                case "opponent_result_in":
-                    Log.LogInfo("[LCRanked] Opponent has finished their run.");
-                    RankedHUD.Instance.SetOpponent("Finished their run!");
-                    break;
-
-                case "match_result":
-                    OnMatchResult(msg);
-                    track = false;
-                    RankedHUD.Remove();
-                    HUDManager.Instance.HideHUD(hide: false);
-                    StartOfRound.Instance.displayedLevelResults = false;
-
-                    break;
-
-                case "match_aborted": // make match abortable : it only accounts for if a player is in a match so change me later please happy i beg
-                    DebugUI.DisplayTip("LC Ranked", "Match aborted!");
-                    Log.LogWarning($"[LCRanked] Match aborted: {msg["reason"]}");
-                    CurrentMatch.Reset();
-                    track = false;
-                    OnMatchAborted(msg);
-                    RankedHUD.Remove();
-                    break;
-
-                case "error":
-                    Log.LogError($"[LCRanked] Server error: {msg["message"]}");
-                    break;
-
-                default:
-                    Log.LogWarning($"[LCRanked] Unknown message type from server: {type}");
-                    break;
-
-                case "player_stats":
-                    if (msg["playerId"]?.ToString() == LocalPlayerId)
-                    {
-                        bool noRecord = msg["noRecord"]?.ToObject<bool>() ?? false;
-                        HasStatsRecord = !noRecord;
-                        LocalStats = noRecord ? null : msg.ToObject<PlayerStats>();
-
-                        bool nameSet = !noRecord && (msg["nameSet"]?.ToObject<bool>() ?? false);
-                        if (!nameSet)
-                        {
-                            NamePromptUI.Create();
-                        }
-                    }
-                    break;
-
-                case "set_display_name_result":
-                    NamePromptUI.Instance?.HandleResult(
-                        msg["success"]?.ToObject<bool>() ?? false,
-                        msg["error"]?.ToString());
-                    break;
-
-                case "leaderboard_page":
-                    var entries = msg["entries"]?.ToObject<LeaderboardWindowUI.JsonEntry[]>() ?? new LeaderboardWindowUI.JsonEntry[0];
-                    int page = msg["page"]?.ToObject<int>() ?? 1;
-                    int totalPages = msg["totalPages"]?.ToObject<int>() ?? 1;
-                    LeaderboardWindowUI.Instance?.HandlePageResult(page, totalPages, entries);
-                    break;
-            }
-        }
-
-        private void HandleNamePromptCheck(JObject msg)
-        {
-            if (msg["playerId"]?.ToString() != LocalPlayerId) return;
-            bool noRecord = msg["noRecord"]?.ToObject<bool>() ?? false;
-            bool nameSet = !noRecord && (msg["nameSet"]?.ToObject<bool>() ?? false);
-            if (!nameSet) NamePromptUI.Create();
-        }
-
-        private void OnMatchAborted(JObject msg)
-        {
-            RankedHUD.Remove();
-        }
-
-        private void OnMatchFound(JObject msg)
-        {
-            DebugUI.DisplayTip("LC Ranked", "Match Found!\nMatch Starting in 15 seconds!");
-            CurrentMatch.Reset();
-            CurrentMatch.matchId = msg["matchId"]?.ToString();
-            CurrentMatch.mode = msg["mode"]?.ToString();
-            CurrentMatch.ruleset = msg["ruleset"]?.ToObject<Ruleset>();
-            CurrentMatch.rulesetJson = msg["ruleset"]?.ToString();
-            CurrentMatch.ruleset.weatherMS = msg["ruleset"]?["weather"]?.ToString();
-            TimeOfDay.Instance.currentLevelWeather = LevelWeatherType.None;
-
-            foreach (var p in msg["participants"])
-            {
-                CurrentMatch.participants.Add(p.ToObject<ParticipantInfo>());
-            }
-
-            Log.LogInfo($"[LCRanked] Match found! Moon={CurrentMatch.ruleset.moon} Seed={CurrentMatch.ruleset.seed} Weather={CurrentMatch.ruleset.weatherMS}  " +
-                        $"Opponent(s)={string.Join(", ", CurrentMatch.participants.ConvertAll(p => p.playerName))}");
-        }
-
-        private void OnMatchStart(JObject msg)
-        {
-            DebugUI.DisplayTip("LC Ranked", "Match starts now!");
-            CurrentMatch.startTimestampMs = msg["startTimestamp"]?.ToObject<long>() ?? 0;
-            Log.LogInfo("[LCRanked] Match starting now.");
-            Runner.BeginMatch(CurrentMatch);
-            RankedHUD.Create();
-            string holder = CurrentMatch.ruleset.moon.ToString();
-            holder.Replace("Level", string.Empty);
-            RankedHUD.Instance.SetMoon(holder);
-            RankedHUD.Instance.SetSeed(CurrentMatch.ruleset.seed);
-            RankedHUD.Instance.SetMatchId(CurrentMatch.matchId);
-            RankedHUD.Instance.SetWeather(CurrentMatch.ruleset.weatherMS);
-            if (LocalStats.rating == -1)
-            {
-                RankedHUD.Instance.mmrText.text = "Unranked";
-            }
-            else
-            {
-                RankedHUD.Instance.SetMMR(LocalStats.rating);
-            }
-        }
-
-        private void OnMatchResult(JObject msg)
-        {
-            Log.LogInfo($"[LCRanked] Match result: winner={msg["winnerName"]}");
-            DebugUI.DisplayTip("LC Ranked", $"Match finished! Winner: {msg["winnerName"]}");
-            foreach (var placement in msg["placements"])
-            {
-                Log.LogInfo($"  #{placement["placement"]} {placement["playerName"]}");
-            }
-            CurrentMatch.Reset();
-            RankedHUD.Remove();
         }
 
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            Network?.Connected -= HandleNetworkConnected;
+            Network?.Connected -= Queue.HandleNetworkConnected;
             Network?.Dispose();
         }
     }
@@ -489,12 +228,12 @@ namespace LCRanked
     public class DebugUI : MonoBehaviour
     {
         public static DebugUI Instance;
-        private static bool _menuOpen;
-        private Coroutine _queueStatusPoller;
-        private bool _pollingActive;
+        public static bool _menuOpen;
+        public Coroutine _queueStatusPoller;
+        public bool _pollingActive;
 
-        private Rect _windowRect = new Rect(700, 20, 500, 350);
-        private Plugin _plugin;
+        public Rect _windowRect = new Rect(700, 20, 500, 350);
+        public Plugin _plugin;
 
         public static void SetMenuForAll(bool value)
         {
@@ -527,17 +266,17 @@ namespace LCRanked
             _menuOpen = value;
             if (value && ui != null)
             {
-                ui.StartQueueStatusPolling();
+                Queue.StartQueueStatusPolling();
             }
             else if (!value && ui != null)
             {
-                ui.StopQueueStatusPolling();
+                Queue.StopQueueStatusPolling();
             }
         }
         public void HideMenu()
         {
             _menuOpen = false;
-            StopQueueStatusPolling();
+            Queue.StopQueueStatusPolling();
         }
 
         private void Awake()
@@ -577,51 +316,6 @@ namespace LCRanked
             {
                 Plugin.Instance ??= plugin;
                 plugin.DebugUi = this;
-            }
-        }
-
-        private void StartQueueStatusPolling()
-        {
-            if (_pollingActive)
-            {
-                return;
-            }
-
-            StopQueueStatusPolling();
-            _pollingActive = true;
-            _queueStatusPoller = StartCoroutine(PollQueueStatusCoroutine());
-        }
-
-        private void StopQueueStatusPolling()
-        {
-            if (_queueStatusPoller != null)
-            {
-                StopCoroutine(_queueStatusPoller);
-                _queueStatusPoller = null;
-            }
-
-            _pollingActive = false;
-        }
-
-        private IEnumerator PollQueueStatusCoroutine()
-        {
-            if (_plugin != null && _plugin.Network != null)
-            {
-                _plugin.RequestQueueStatus();
-                _plugin.RequestPlayerStats();
-            }
-
-            yield return new WaitForSeconds(15f);
-
-            while (_menuOpen)
-            {
-                if (_plugin != null && _plugin.Network != null && _plugin.Network.IsConnected)
-                {
-                    _plugin.RequestQueueStatus();
-                    _plugin.RequestPlayerStats();
-                }
-
-                yield return new WaitForSeconds(30f);
             }
         }
 
@@ -678,7 +372,7 @@ namespace LCRanked
             {
                 if (GUILayout.Button(plugin.IsInQueue ? "Leave queue" : "Join queue"))
                 {
-                    Plugin.ToggleQueueFromMenu();
+                    Queue.ToggleQueueFromMenu();
                 }
             }
             else
@@ -737,7 +431,9 @@ namespace LCRanked
             }
             return _headerStyle;
         }
-
+    }
+    public class QuickmenuPatches
+    {
         [HarmonyPatch(typeof(QuickMenuManager))]
         public class QuickMenuPatch
         {
@@ -759,7 +455,9 @@ namespace LCRanked
                 DebugUI.SetMenuForAll(false);
             }
         }
-
+    }
+    public class Display
+    {
         public static void DisplayTip(string title, string msg, bool isWarning = false)
         {
             HUDManager.Instance.DisplayTip(title, msg, isWarning, false, "LC_Tip1");
@@ -767,6 +465,6 @@ namespace LCRanked
 
 
     }
-
-
 }
+
+

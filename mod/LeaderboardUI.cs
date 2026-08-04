@@ -323,7 +323,6 @@ namespace LCRanked
 
             LayoutRebuilder.ForceRebuildLayoutImmediate(rowContainer.GetComponent<RectTransform>());
 
-            // Diagnostic: measure AFTER the rebuild, not during creation.
             if (rowObjects.Count > 0)
             {
                 var firstRow = rowObjects[0];
