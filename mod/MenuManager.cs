@@ -90,7 +90,7 @@ namespace LCRanked
 
                 if (__instance.versionNumberText != null)
                 {
-                    __instance.versionNumberText.text = "v81 LCR 0.2.88";
+                    __instance.versionNumberText.text = "v81 LCR 0.3.1";
                 }
                 else
                 {

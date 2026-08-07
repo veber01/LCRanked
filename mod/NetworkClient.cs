@@ -370,7 +370,7 @@ namespace LCRanked
             }
         }
 
-// ------------------------- LEADERBOARD STUFF -------------------------
+        // ------------------------- LEADERBOARD STUFF -------------------------
         public async Task RequestLeaderboardAsync(int page, int limit)
         {
             if (!IsConnected) return;
@@ -399,6 +399,96 @@ namespace LCRanked
         public void RequestLeaderboardPage(int page, int limit)
         {
             _ = RequestLeaderboardAsync(page, limit);
+        }
+
+        public async Task RequestProfileStatsAsync(string playerId)
+        {
+            if (string.IsNullOrWhiteSpace(playerId) || !IsConnected) return;
+
+            try
+            {
+                var uri = new Uri(_serverUri, $"/api/stats/{Uri.EscapeDataString(playerId)}");
+                var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.LogWarning($"[LCRanked] Profile stats request failed: {(int)response.StatusCode}");
+                    return;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                if (string.IsNullOrWhiteSpace(content) || content == "null")
+                {
+                    IncomingMessages.Enqueue(new JObject { ["type"] = "profile_stats", ["playerId"] = playerId, ["noRecord"] = true });
+                    return;
+                }
+
+                var stats = JObject.Parse(content);
+                stats["type"] = "profile_stats";
+                IncomingMessages.Enqueue(stats);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning($"[LCRanked] Failed to fetch profile stats: {ex.Message}");
+            }
+        }
+
+        public async Task RequestProfileHistoryAsync(string playerId, int limit)
+        {
+            if (string.IsNullOrWhiteSpace(playerId) || !IsConnected) return;
+
+            try
+            {
+                var uri = new Uri(_serverUri, $"/api/history/{Uri.EscapeDataString(playerId)}?limit={limit}");
+                var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.LogWarning($"[LCRanked] Profile history request failed: {(int)response.StatusCode}");
+                    return;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var array = JArray.Parse(string.IsNullOrWhiteSpace(content) ? "[]" : content);
+                IncomingMessages.Enqueue(new JObject { ["type"] = "profile_history", ["playerId"] = playerId, ["entries"] = array });
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning($"[LCRanked] Failed to fetch profile history: {ex.Message}");
+            }
+        }
+
+        public async Task RequestPlayerSearchAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query) || !IsConnected) return;
+
+            try
+            {
+                var uri = new Uri(_serverUri, $"/api/search?name={Uri.EscapeDataString(query)}&limit=5");
+                var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _log.LogWarning($"[LCRanked] Player search failed: {(int)response.StatusCode}");
+                    return;
+                }
+
+                var content = await response.Content.ReadAsStringAsync();
+                var array = JArray.Parse(string.IsNullOrWhiteSpace(content) ? "[]" : content);
+                IncomingMessages.Enqueue(new JObject { ["type"] = "profile_search_result", ["query"] = query, ["results"] = array });
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning($"[LCRanked] Failed to search players: {ex.Message}");
+            }
+        }
+
+        public void RequestProfile(string playerId, int historyLimit = 10)
+        {
+            _ = RequestProfileStatsAsync(playerId);
+            _ = RequestProfileHistoryAsync(playerId, historyLimit);
+        }
+
+        public void SearchPlayer(string query)
+        {
+            _ = RequestPlayerSearchAsync(query);
         }
     }
 }

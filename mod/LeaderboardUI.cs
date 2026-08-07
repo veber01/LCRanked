@@ -52,8 +52,8 @@ namespace LCRanked
             var rect = buttonObj.AddComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
             rect.pivot = new Vector2(1f, 1f);
-            rect.sizeDelta = new Vector2(220, 1500);
-            rect.anchoredPosition = new Vector2(-40, -95);
+            rect.sizeDelta = new Vector2(220, 36);
+            rect.anchoredPosition = new Vector2(-40, -850);
 
             var button = buttonObj.AddComponent<Button>();
             var bg = buttonObj.AddComponent<Image>();
@@ -368,10 +368,7 @@ namespace LCRanked
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            //AddRowLabel(rowObj.transform, $"#{entry.placement}", 50, TextAlignmentOptions.Left, 16);
-            var rankLabel = AddRowLabel(rowObj.transform, $"#{entry.placement}", 50, TextAlignmentOptions.Left, 16);
-            var rankRect = rankLabel.GetComponent<RectTransform>();
-            Plugin.Log.LogInfo($"[LCRanked] Rank cell for #{entry.placement}: text='{rankLabel.text}', width={rankRect.rect.width}, pos={rankRect.anchoredPosition}, color={rankLabel.color}");
+            AddRowLabel(rowObj.transform, $"          #{entry.placement}", 100, TextAlignmentOptions.Left, 16);
             AddRowLabel(rowObj.transform, entry.playerName, 240, TextAlignmentOptions.Left, 16);
             AddSteamProfileButton(rowObj.transform, entry.playerId);
             AddRowLabel(rowObj.transform, entry.rating.ToString(), 250, TextAlignmentOptions.Right, 16);

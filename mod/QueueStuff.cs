@@ -205,6 +205,17 @@ namespace LCRanked
                     int totalPages = msg["totalPages"]?.ToObject<int>() ?? 1;
                     LeaderboardWindowUI.Instance?.HandlePageResult(page, totalPages, entries);
                     break;
+                case "profile_stats":
+                    ProfileWindowUI.Instance?.HandleStatsResult(msg);
+                    break;
+
+                case "profile_history":
+                    ProfileWindowUI.Instance?.HandleHistoryResult(msg);
+                    break;
+
+                case "profile_search_result":
+                    ProfileWindowUI.Instance?.HandleSearchResult(msg);
+                    break;
             }
         }
 
