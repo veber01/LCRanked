@@ -1,0 +1,96 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>LCRanked</AssemblyName>
+    <Description>Seeded ranked mode for Lethal Company</Description>
+    <Version>0.3.1</Version>
+    <LangVersion>latest</LangVersion>
+    <RestoreAdditionalProjectSources>
+      https://api.nuget.org/v3/index.json
+    </RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <LCDir Condition="'$(LETHAL_COMPANY_DIR)' != ''">$(LETHAL_COMPANY_DIR)</LCDir>
+    <LCDir Condition="'$(LCDir)' == ''">d:\Lethal Company\LCRanked\Lethal\</LCDir>
+    <ManagedDir>$(LCDir)\Lethal Company_Data\Managed</ManagedDir>
+    <BepInExCoreDir>$(LCDir)\BepInEx\core</BepInExCoreDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="BepInEx">
+      <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(ManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(ManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+        <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ManagedDir)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>$(ManagedDir)\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule">
+  <HintPath>$(ManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+<Reference Include="UnityEngine.IMGUIModule">
+  <HintPath>$(ManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+    <Reference Include="Unity.Netcode.Runtime">
+      <HintPath>$(ManagedDir)\Unity.Netcode.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+        <Reference Include="Assembly-CSharp-firstpass">
+        <HintPath>$(ManagedDir)\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+
+    <Reference Include="Facepunch.Steamworks.Win64">
+  <HintPath>$(ManagedDir)\Facepunch.Steamworks.Win64.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="references/**" />
+  </ItemGroup>
+
+</Project>
