@@ -87,7 +87,7 @@ namespace LCRanked
                 batchCumulativeCounts.Add(plannedSpawns.Count);
             }
 
-            Debug.Log($"[LCRanked] Deterministic enemy plan built: {plannedSpawns.Count} enemies planned across {batchCumulativeCounts.Count} batches.");
+            Plugin.Log.LogInfo($"[LCRanked] Deterministic enemy plan built: {plannedSpawns.Count} enemies planned across {batchCumulativeCounts.Count} batches.");
             LogFullDayPlan(rm);
         }
 
@@ -102,7 +102,7 @@ namespace LCRanked
                 }
                 var planned = plannedSpawns[i];
                 var enemyType = rm.currentLevel.Enemies[planned.enemyTypeIndex].enemyType;
-                Debug.Log($"[LCRanked] Plan #{i} (batch {batch}): {enemyType.enemyName} @ t={planned.spawnTime:F1}");
+                Plugin.Log.LogInfo($"[LCRanked] Plan #{i} (batch {batch}): {enemyType.enemyName} @ t={planned.spawnTime:F1}");
             }
         }
 
@@ -175,7 +175,6 @@ namespace LCRanked
             }
 
             if (weights.Sum() <= 0) return -1;
-            Debug.Log($"[LCRanked] weights=[{string.Join(",", weights)}] sum={weights.Sum()}");
             return PickWeightedIndexDeterministic(weights, planningRandom);
         }
 
@@ -183,6 +182,8 @@ namespace LCRanked
         {
             if (currentBatchIndex < 0 || currentBatchIndex >= batchCumulativeCounts.Count) return;
             int allowedCount = batchCumulativeCounts[currentBatchIndex];
+            //debug
+            Plugin.Log.LogInfo($"[LCRanked] TryAdvance called: currentBatchIndex={currentBatchIndex}, allowedCount={(currentBatchIndex >= 0 && currentBatchIndex < batchCumulativeCounts.Count ? batchCumulativeCounts[currentBatchIndex].ToString() : "N/A")}, nextPlannedIndex={nextPlannedIndex}, totalPlanned={plannedSpawns.Count}");
 
             while (nextPlannedIndex < allowedCount)
             {
@@ -192,14 +193,14 @@ namespace LCRanked
                 if (rm.currentEnemyPower >= rm.currentMaxInsidePower && (rm.currentEnemyPower + enemyType.PowerLevel) > rm.currentMaxInsidePower) //thanks ak
                 {
                     rm.cannotSpawnMoreInsideEnemies = true;
-                    Debug.Log($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - power cap reached.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - power cap reached.");
                     break;
                 }
 
                 var freeVents = rm.allEnemyVents.Where(v => !v.occupied).ToList();
                 if (freeVents.Count == 0)
                 {
-                    Debug.Log($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - no free vent.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - no free vent.");
                     break;
                 }
                 EnemyVent freeVent = freeVents[planningRandom.Next(0, freeVents.Count)];
@@ -219,7 +220,7 @@ namespace LCRanked
                 enemyType.numberSpawned++;
                 enemyType.hasSpawnedAtLeastOne = true;
 
-                Debug.Log($"[LCRanked] Committed planned spawn: {enemyType.enemyName}.");
+                Plugin.Log.LogInfo($"[LCRanked] Committed planned spawn: {enemyType.enemyName}.");
                 nextPlannedIndex++;
             }
         }
@@ -231,7 +232,7 @@ namespace LCRanked
             {
                 if (rm.allEnemyVents[i].occupied && rm.timeScript.currentDayTime > rm.allEnemyVents[i].spawnTime)
                 {
-                    Debug.Log("Found enemy vent which has its time up: " + rm.allEnemyVents[i].gameObject.name + ". Spawning " + rm.allEnemyVents[i].enemyType.enemyName + " from vent.");
+                    Plugin.Log.LogInfo($"[LCRanked] Found enemy vent which has its time up: {rm.allEnemyVents[i].gameObject.name}. Spawning {rm.allEnemyVents[i].enemyType.enemyName} from vent.");
                     rm.SpawnEnemyFromVent(rm.allEnemyVents[i]);
                 }
             }
@@ -251,14 +252,17 @@ namespace LCRanked
             spawnWeed(rm);
 
             currentBatchIndex++;
-
             if (rm.allEnemyVents.Length != 0 && !rm.cannotSpawnMoreInsideEnemies)
             {
+                if(rm.minEnemiesToSpawn == 0)
+                {
+                    rm.minEnemiesToSpawn = 1;
+                }
                 TryAdvancePlannedEnemySpawns(rm);
             }
             else
             {
-                Debug.Log($"Could not spawn more enemies; vents #: {rm.allEnemyVents.Length}. CannotSpawnMoreInsideEnemies: {rm.cannotSpawnMoreInsideEnemies}");
+                Plugin.Log.LogInfo($"Could not spawn more enemies; vents #: {rm.allEnemyVents.Length}. CannotSpawnMoreInsideEnemies: {rm.cannotSpawnMoreInsideEnemies}");
             }
         }
     }
