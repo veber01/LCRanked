@@ -94,10 +94,6 @@ namespace LCRanked
                     __instance.versionNumberText.text = "v56 LCR 0.3.21";
                     __instance.versionNumberText.autoSizeTextContainer = false;
                 }
-                else
-                {
-                    Plugin.Log.LogWarning("[LCRanked] versionNumberText was null on MenuManager.Start() - skipping version text override.");
-                }
             }
         }
 
@@ -119,14 +115,12 @@ namespace LCRanked
 
                 if (creditsTextObj == null)
                 {
-                    Plugin.Log.LogWarning("[LCRanked] Could not find 'CreditsText' - skipping");
                     return;
                 }
 
                 var text = creditsTextObj.GetComponent<TMPro.TextMeshProUGUI>();
                 if (text == null)
                 {
-                    Plugin.Log.LogWarning("[LCRanked] 'CreditsText' object found but no TextMeshProUGUI - skipping.");
                     return;
                 }
 
