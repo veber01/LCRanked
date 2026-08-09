@@ -30,7 +30,7 @@ namespace LCRanked
         {
             if (!_tracking) return;
             _diedThisRun = true;
-            Plugin.Log.LogInfo("[LCRanked] Local player died this run.");
+            Plugin.Log.LogInfo("[LCRanked] Local player died.");
         }
 
 
@@ -45,13 +45,11 @@ namespace LCRanked
                     if (!AliveAt2pm && !_diedThisRun && t >= TwoPmNormalized)
                     {
                         AliveAt2pm = true;
-                        Plugin.Log.LogInfo("[LCRanked] Checkpoint reached: alive at 2PM.");
                     }
 
                     if (!AliveAt9pm && !_diedThisRun && t >= NinePmNormalized)
                     {
                         AliveAt9pm = true;
-                        Plugin.Log.LogInfo("[LCRanked] Checkpoint reached: alive at 9PM.");
                     }
                 }
 

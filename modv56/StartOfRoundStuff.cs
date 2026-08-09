@@ -11,6 +11,9 @@ namespace LCRanked
 
 
 
+
+
+
     [HarmonyPatch(typeof(StartOfRound))]
     public static class MatchLeverPatch
     {
@@ -39,7 +42,7 @@ namespace LCRanked
             }
             catch (System.Exception ex)
             {
-                Plugin.Log?.LogWarning($"[LCRanked] Failed to set magnet on: {ex.Message}");
+                Plugin.Log.LogError($"[LCRanked] Failed to set magnet on: {ex.Message}");
             }
         }
     }
@@ -55,6 +58,7 @@ namespace LCRanked
             Plugin.collected = sor.scrapCollectedLastRound;
             RoundManager.Instance.DespawnPropsAtEndOfRound(true);
             DeterministicEnemyPlanner.ranplan = false;
+            MatchRunner.DespawnCruiser();
             return;
         }
     }

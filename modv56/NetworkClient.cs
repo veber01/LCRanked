@@ -238,30 +238,19 @@ namespace LCRanked
 
         public async Task SendAsync(object payload)
         {
-            if (!IsConnected)
-            {
-                _log.LogWarning("[LCRanked] Tried to send while not connected.");
-                return;
-            }
+            if (!IsConnected) return;
 
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(payload);
-            _log.LogInfo($"[LCRanked] Sending HTTP payload");
             try
             {
                 var commandUri = new Uri(_serverUri, "/api/command");
-                _log.LogInfo($"[LCRanked] Posting command");
                 var response = await _httpClient.PostAsync(
                     commandUri,
                     new StringContent(json, Encoding.UTF8, "application/json"),
                     _cts.Token);
 
                 var content = await response.Content.ReadAsStringAsync();
-                _log.LogInfo($"[LCRanked] Command response from: {content}");
-                if (!response.IsSuccessStatusCode)
-                {
-                    _log.LogError($"[LCRanked] HTTP command failed: {(int)response.StatusCode} {content}");
-                    return;
-                }
+                if (!response.IsSuccessStatusCode) return;
 
                 if (!string.IsNullOrWhiteSpace(content) && content != "null")
                 {
@@ -285,11 +274,9 @@ namespace LCRanked
                     }
                     catch (Exception parseEx)
                     {
-                        _log.LogWarning($"[LCRanked] Failed to parse command response: {parseEx.Message}");
+                        _log.LogError($"[LCRanked] Failed to parse response: {parseEx.Message}");
                     }
                 }
-
-                _log.LogInfo("[LCRanked] HTTP payload sent.");
             }
             catch (Exception e)
             {
@@ -348,7 +335,7 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogWarning($"[LCRanked] Stats request failed: {(int)response.StatusCode}");
+                    _log.LogError($"[LCRanked] Stats request failed: {(int)response.StatusCode}");
                     return;
                 }
 
@@ -366,7 +353,7 @@ namespace LCRanked
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"[LCRanked] Failed to fetch player stats: {ex.Message}");
+                _log.LogError($"[LCRanked] Failed to fetch player stats: {ex.Message}");
             }
         }
 
@@ -381,7 +368,7 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogWarning($"[LCRanked] Leaderboard request failed: {(int)response.StatusCode}");
+                    _log.LogError($"[LCRanked] Leaderboard request failed: {(int)response.StatusCode}");
                     return;
                 }
 
@@ -392,7 +379,7 @@ namespace LCRanked
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"[LCRanked] Failed to fetch leaderboard: {ex.Message}");
+                _log.LogError($"[LCRanked] Failed to fetch leaderboard: {ex.Message}");
             }
         }
 
@@ -411,7 +398,7 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogWarning($"[LCRanked] Profile stats request failed: {(int)response.StatusCode}");
+                    _log.LogError($"[LCRanked] Profile stats request failed: {(int)response.StatusCode}");
                     return;
                 }
 
@@ -428,7 +415,7 @@ namespace LCRanked
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"[LCRanked] Failed to fetch profile stats: {ex.Message}");
+                _log.LogError($"[LCRanked] Failed to fetch profile stats: {ex.Message}");
             }
         }
 
@@ -442,7 +429,7 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogWarning($"[LCRanked] Profile history request failed: {(int)response.StatusCode}");
+                    _log.LogError($"[LCRanked] Profile history request failed: {(int)response.StatusCode}");
                     return;
                 }
 
@@ -452,7 +439,7 @@ namespace LCRanked
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"[LCRanked] Failed to fetch profile history: {ex.Message}");
+                _log.LogError($"[LCRanked] Failed to fetch profile history: {ex.Message}");
             }
         }
 
@@ -466,7 +453,7 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogWarning($"[LCRanked] Player search failed: {(int)response.StatusCode}");
+                    _log.LogError($"[LCRanked] Player search failed: {(int)response.StatusCode}");
                     return;
                 }
 
@@ -476,7 +463,7 @@ namespace LCRanked
             }
             catch (Exception ex)
             {
-                _log.LogWarning($"[LCRanked] Failed to search players: {ex.Message}");
+                _log.LogError($"[LCRanked] Failed to search players: {ex.Message}");
             }
         }
 

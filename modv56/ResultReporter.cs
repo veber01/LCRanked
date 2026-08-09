@@ -20,8 +20,6 @@ namespace LCRanked
                 aliveAt2pm: match.aliveAt2pm,
                 aliveAt9pm: match.aliveAt9pm
             );
-
-            Plugin.Log.LogInfo($"[LCRanked] Results: {match.collectedValue} value, survived={match.survived}");
         }
     }
 }

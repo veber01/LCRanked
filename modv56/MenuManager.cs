@@ -91,7 +91,7 @@ namespace LCRanked
 
                 if (__instance.versionNumberText != null)
                 {
-                    __instance.versionNumberText.text = "v56 LCR 0.3.21";
+                    __instance.versionNumberText.text = "v56 LCR 0.3.9a";
                     __instance.versionNumberText.autoSizeTextContainer = false;
                 }
             }
@@ -135,6 +135,7 @@ namespace LCRanked
         Walfrody (for ideas and inspiration)
         Resonance (for ideas and inspiration)
         Crew Finder discord community
+        and everyone with feedback and suggestions
 
         and YOU
 

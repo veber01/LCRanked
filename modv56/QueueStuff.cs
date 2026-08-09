@@ -69,7 +69,7 @@ namespace LCRanked
 
         public static void HandleNetworkConnected()
         {
-            Plugin.Log.LogInfo("[LCRanked] Network connected; processing pending queue action.");
+            Plugin.Log.LogInfo("[LCRanked] Network connected");
             Plugin.StartCoroutine(DelayedQueueFlush());
             Plugin.RequestPlayerStats();
         }
@@ -102,13 +102,11 @@ namespace LCRanked
             {
                 Plugin.Network.JoinQueue(Plugin.LocalPlayerId, Plugin.LocalPlayerName, Plugin.LocalPlayerId);
                 Plugin._inQueue = true;
-                Plugin.Log.LogInfo("[LCRanked] Sent join_queue request.");
             }
             else
             {
                 Plugin.Network.LeaveQueue(Plugin.LocalPlayerId);
                 Plugin._inQueue = false;
-                Plugin.Log.LogInfo("[LCRanked] Sent leave_queue request.");
             }
         }
 
@@ -241,15 +239,13 @@ namespace LCRanked
             Plugin.CurrentMatch.ruleset = msg["ruleset"]?.ToObject<Ruleset>();
             Plugin.CurrentMatch.rulesetJson = msg["ruleset"]?.ToString();
             Plugin.CurrentMatch.ruleset.weatherMS = msg["ruleset"]?["weather"]?.ToString();
+            Plugin.CurrentMatch.ruleset.spawnCruiser = msg["ruleset"]?["spawnCruiser"]?.ToObject<bool>() ?? false;
             TimeOfDay.Instance.currentLevelWeather = LevelWeatherType.None;
 
             foreach (var p in msg["participants"])
             {
                 Plugin.CurrentMatch.participants.Add(p.ToObject<ParticipantInfo>());
             }
-
-            Plugin.Log.LogInfo($"[LCRanked] Match found! Moon={Plugin.CurrentMatch.ruleset.moon} Seed={Plugin.CurrentMatch.ruleset.seed} Weather={Plugin.CurrentMatch.ruleset.weatherMS}  " +
-                        $"Opponent(s)={string.Join(", ", Plugin.CurrentMatch.participants.ConvertAll(p => p.playerName))}");
         }
 
         public static void OnMatchStart(JObject msg)

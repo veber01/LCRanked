@@ -37,7 +37,7 @@ namespace LCRanked
 
             if (!startOfRound.IsServer)
             {
-                Plugin.Log.LogWarning("[LCRanked] Not server/host - can't drive match start.");
+                Plugin.Log.LogError("[LCRanked] Not server/host - can't drive match start.");
                 yield break;
             }
 
@@ -86,7 +86,6 @@ namespace LCRanked
             int targetLevelIndex = FindLevelIndex(startOfRound, match.ruleset.moon, levelId);
             if (targetLevelIndex < 0)
             {
-                Plugin.Log.LogError($"[LCRanked] Unknown moon in ruleset: {match.ruleset.moon} (levelId={levelId})");
                 yield break;
             }
 
@@ -98,6 +97,10 @@ namespace LCRanked
 
             yield return new WaitForSeconds(0.5f);
 
+            if (match.ruleset.spawnCruiser)
+            {
+                SpawnCruiser(true);
+            }
             if (pendingUtilities.Length > 0)
             {
                 SpawnUtilities(pendingUtilities);
@@ -106,7 +109,6 @@ namespace LCRanked
 
             if (startOfRound.currentLevelID != targetLevelIndex)
             {
-                Plugin.Log.LogInfo($"[LCRanked] Routing to moon: {match.ruleset.moon} (index {targetLevelIndex})");
                 startOfRound.ChangeLevelServerRpc(targetLevelIndex, terminal != null ? terminal.groupCredits : match.ruleset.startingCredits);
 
                 yield return new WaitUntil(() => !startOfRound.travellingToNewLevel);
@@ -115,7 +117,7 @@ namespace LCRanked
             ApplyForcedWeather(startOfRound, match.ruleset.weatherMS, targetLevel);
 
             SeedManager.Apply(startOfRound, match.ruleset.seed);
-            //startOfRound.LocalPlayerDieEvent.AddListener((_, __) => RunTracker.OnLocalPlayerDied());
+            //startOfRound.LocalPlayerDieEvent.AddListener((_, __) => RunTracker.OnLocalPlayerDied()); //v81
             RunTracker.BeginTracking(match);
             StartCoroutine(RunTracker.WatchSurvivalCheckpoints());
             startOfRound.StartGameServerRpc();
@@ -188,8 +190,56 @@ namespace LCRanked
                 }
                 catch (System.Exception ex)
                 {
-                    Plugin.Log?.LogWarning($"[LCRanked] Error spawning utility '{utilityName}': {ex.Message}");
+                    Plugin.Log.LogWarning($"[LCRanked] Error spawning utility '{utilityName}': {ex.Message}");
                 }
+            }
+        }
+
+        public static GameObject _spawnedCruiserMain;
+        public static GameObject _spawnedCruiserSecondary;
+
+        private void SpawnCruiser(bool spawnCruiser)
+        {
+            var terminal = FindObjectOfType<Terminal>();
+            var startOfRound = StartOfRound.Instance;
+            if (terminal == null || startOfRound == null) return;
+            if (terminal.buyableVehicles == null || terminal.buyableVehicles.Length == 0)
+            {
+                return;
+            }
+            var vehicle = terminal.buyableVehicles[0];
+            Transform hangarShipTransform = null;
+            var hangarShip = GameObject.Find("HangarShip");
+            if (hangarShip != null)
+            {
+                hangarShipTransform = hangarShip.transform;
+            }
+            Vector3 spawnPos = (hangarShipTransform != null ? hangarShipTransform.position : Vector3.zero) + new Vector3(8f, 0.5f, -10f);
+            try
+            {
+                var mainObj = UnityEngine.Object.Instantiate(vehicle.vehiclePrefab, spawnPos, Quaternion.identity, RoundManager.Instance.VehiclesContainer);
+                var mainNetObj = mainObj.GetComponent<NetworkObject>();
+                if (mainNetObj != null)
+                {
+                    mainNetObj.Spawn();
+                }
+                _spawnedCruiserMain = mainObj;
+
+                if (vehicle.secondaryPrefab != null)
+                {
+                    var secondaryObj = UnityEngine.Object.Instantiate(vehicle.secondaryPrefab, spawnPos, Quaternion.identity, RoundManager.Instance.VehiclesContainer);
+                    var secondaryNetObj = secondaryObj.GetComponent<NetworkObject>();
+                    if (secondaryNetObj != null)
+                    {
+                        secondaryNetObj.Spawn();
+                    }
+                    _spawnedCruiserSecondary = secondaryObj;
+                }
+                Plugin.Log.LogInfo($"[LCRanked] Spawned cruiser.");
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Log.LogWarning($"[LCRanked] Error spawning cruiser: {ex.Message}");
             }
         }
 
@@ -314,7 +364,6 @@ namespace LCRanked
             }
             if (!Enum.TryParse<LevelWeatherType>(weatherName, ignoreCase: true, out var weatherType))
             {
-                Plugin.Log.LogError($"[LCRanked] Unknown weather type from server: {weatherName}");
                 return;
             }
 
@@ -331,6 +380,39 @@ namespace LCRanked
 
             Plugin.Log.LogInfo($"[LCRanked] Forced weather '{weatherType}' on {targetLevel.PlanetName}");
         }
+
+
+        public static void DespawnCruiser()
+        {
+            try
+            {
+                DespawnCruiserObject(ref _spawnedCruiserMain);
+                DespawnCruiserObject(ref _spawnedCruiserSecondary);
+                Plugin.Log.LogInfo("[LCRanked] Cruiser despawned.");
+            }
+            catch (System.Exception ex)
+            {
+                Plugin.Log.LogWarning($"[LCRanked] Error despawning cruiser: {ex.Message}");
+            }
+        }
+
+        private static void DespawnCruiserObject(ref GameObject obj)
+        {
+            if (obj == null) return;
+
+            var netObj = obj.GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned)
+            {
+                netObj.Despawn(true);
+            }
+            else
+            {
+                UnityEngine.Object.Destroy(obj);
+            }
+
+            obj = null;
+        }
+
 
 
 

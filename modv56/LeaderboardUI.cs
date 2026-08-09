@@ -326,13 +326,9 @@ namespace LCRanked
             if (rowObjects.Count > 0)
             {
                 var firstRow = rowObjects[0];
-                var rowRect = firstRow.GetComponent<RectTransform>();
-                Plugin.Log.LogInfo($"[LCRanked] Row rect: width={rowRect.rect.width}, childCount={firstRow.transform.childCount}");
                 for (int i = 0; i < firstRow.transform.childCount; i++)
                 {
                     var child = firstRow.transform.GetChild(i);
-                    var childRect = child.GetComponent<RectTransform>();
-                    Plugin.Log.LogInfo($"[LCRanked]   Child {i} '{child.name}': width={childRect.rect.width}, anchoredPos={childRect.anchoredPosition}");
                 }
             }
         }
@@ -433,11 +429,7 @@ namespace LCRanked
 
         private static void OpenSteamProfile(string steamId)
         {
-            if (string.IsNullOrEmpty(steamId) || !SteamIdPattern.IsMatch(steamId))
-            {
-                Plugin.Log?.LogWarning($"[LCRanked] Not openin - not a valid Steam ID: '{steamId}'");
-                return;
-            }
+            if (string.IsNullOrEmpty(steamId) || !SteamIdPattern.IsMatch(steamId)) return;
 
             try
             {
@@ -447,11 +439,10 @@ namespace LCRanked
                     FileName = url,
                     UseShellExecute = true
                 });
-                Plugin.Log?.LogInfo($"[LCRanked] Opened Steam profile: {url}");
             }
             catch (Exception ex)
             {
-                Plugin.Log?.LogWarning($"[LCRanked] Failed to open Steam profile for {steamId}: {ex.Message}");
+                Plugin.Log.LogWarning($"[LCRanked] Failed to open: {steamId}: {ex.Message}");
             }
         }
 

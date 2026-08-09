@@ -50,7 +50,7 @@ namespace LCRanked
 
             planningRandom = new System.Random(StartOfRound.Instance.randomMapSeed + 918273); //thanks ak
 
-            int enemyRushIndex = -1;//enemyRushIndexRef(rm);
+            int enemyRushIndex = -1;//enemyRushIndexRef(rm); v81
             var shadowNumberSpawned = new int[rm.currentLevel.Enemies.Count];
 
             int totalHours = rm.timeScript.numberOfHours;
@@ -183,7 +183,7 @@ namespace LCRanked
             if (currentBatchIndex < 0 || currentBatchIndex >= batchCumulativeCounts.Count) return;
             int allowedCount = batchCumulativeCounts[currentBatchIndex];
             //debug
-            Plugin.Log.LogError($"[LCRanked] TryAdvance called: currentBatchIndex={currentBatchIndex}, allowedCount={(currentBatchIndex >= 0 && currentBatchIndex < batchCumulativeCounts.Count ? batchCumulativeCounts[currentBatchIndex].ToString() : "N/A")}, nextPlannedIndex={nextPlannedIndex}, totalPlanned={plannedSpawns.Count}");
+            Plugin.Log.LogInfo($"[LCRanked] TryAdvance called: currentBatchIndex={currentBatchIndex}, allowedCount={(currentBatchIndex >= 0 && currentBatchIndex < batchCumulativeCounts.Count ? batchCumulativeCounts[currentBatchIndex].ToString() : "N/A")}, nextPlannedIndex={nextPlannedIndex}, totalPlanned={plannedSpawns.Count}");
 
             while (nextPlannedIndex < allowedCount)
             {
@@ -193,14 +193,14 @@ namespace LCRanked
                 if (rm.currentEnemyPower >= rm.currentMaxInsidePower && (rm.currentEnemyPower + enemyType.PowerLevel) > rm.currentMaxInsidePower) //thanks ak
                 {
                     rm.cannotSpawnMoreInsideEnemies = true;
-                    Plugin.Log.LogError($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - power cap reached.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - power cap reached.");
                     break;
                 }
 
                 var freeVents = rm.allEnemyVents.Where(v => !v.occupied).ToList();
                 if (freeVents.Count == 0)
                 {
-                    Plugin.Log.LogError($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - no free vent.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - no free vent.");
                     break;
                 }
                 EnemyVent freeVent = freeVents[planningRandom.Next(0, freeVents.Count)];
@@ -222,7 +222,7 @@ namespace LCRanked
                 enemyType.numberSpawned++;
                 //enemyType.hasSpawnedAtLeastOne = true;
 
-                Plugin.Log.LogError($"[LCRanked] Committed planned spawn: {enemyType.enemyName}.");
+                Plugin.Log.LogInfo($"[LCRanked] Committed planned spawn: {enemyType.enemyName}.");
                 nextPlannedIndex++;
             }
         }
@@ -234,7 +234,7 @@ namespace LCRanked
             {
                 if (rm.allEnemyVents[i].occupied && rm.timeScript.currentDayTime > rm.allEnemyVents[i].spawnTime)
                 {
-                    Plugin.Log.LogError("Found enemy vent which has its time up: " + rm.allEnemyVents[i].gameObject.name + ". Spawning " + rm.allEnemyVents[i].enemyType.enemyName + " from vent.");
+                    Plugin.Log.LogInfo("Found enemy vent which has its time up: " + rm.allEnemyVents[i].gameObject.name + ". Spawning " + rm.allEnemyVents[i].enemyType.enemyName + " from vent.");
                     rm.SpawnEnemyFromVent(rm.allEnemyVents[i]);
                 }
             }
@@ -251,7 +251,7 @@ namespace LCRanked
         {
             if (Mathf.Approximately(rm.timeScript.currentDayTime, lastAdvanceDayTime))
             {
-                Plugin.Log.LogError("[LCRanked] AdvanceHour fired again, ignoring duplicate.");
+                Plugin.Log.LogInfo("[LCRanked] AdvanceHour fired again, ignoring duplicate.");
                 return;
             }
             lastAdvanceDayTime = rm.timeScript.currentDayTime;
@@ -269,7 +269,7 @@ namespace LCRanked
             }
             else
             {
-                Plugin.Log.LogError($"Could not spawn more enemies; vents #: {rm.allEnemyVents.Length}. CannotSpawnMoreInsideEnemies: {rm.cannotSpawnMoreInsideEnemies}");
+                Plugin.Log.LogInfo($"Could not spawn more enemies; vents #: {rm.allEnemyVents.Length}. CannotSpawnMoreInsideEnemies: {rm.cannotSpawnMoreInsideEnemies}");
             }
         }
 

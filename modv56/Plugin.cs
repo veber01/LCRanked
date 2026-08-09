@@ -17,7 +17,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.21";
+        public const string PluginVersion = "0.3.9";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -31,8 +31,8 @@ namespace LCRanked
         internal DebugUI DebugUi { get; set; }
 
 
-        //public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
-        public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
+        public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
+        //public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
         public string LocalPlayerName = "Player";
 
 
@@ -151,11 +151,11 @@ namespace LCRanked
                 EnsureDebugUI();
 
                 _initialized = true;
-                Log?.LogInfo("[LCRanked] Plugin initialization complete.");
+                Log.LogInfo("[LCRanked] Plugin initialization complete.");
             }
             catch (System.Exception ex)
             {
-                Log?.LogError($"[LCRanked] Plugin initialization failed: {ex.Message}");
+                Log.LogError($"[LCRanked] Plugin initialization failed: {ex.Message}");
             }
         }
 
@@ -171,7 +171,7 @@ namespace LCRanked
                 {
                     RequestPlayerStats();
                     StartCoroutine(CreateLeaderboardLinkNextFrame());
-                    //LocalPlayerId = Steamworks.SteamClient.SteamId.ToString();
+                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString();
                 }
                 return;
             }

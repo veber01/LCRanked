@@ -10,6 +10,7 @@ namespace LCRanked
         public bool lockSettingsMidRun;
         public string scoringMode;
         public string weatherMS;
+        public bool spawnCruiser;
     }
 
     public class ParticipantInfo
@@ -28,13 +29,11 @@ namespace LCRanked
         public string weatherMS;
         public List<ParticipantInfo> participants = new List<ParticipantInfo>();
         public long startTimestampMs;
-
         public bool runFinished;
         public int collectedValue;
         public bool survived;
         public bool aliveAt2pm;
         public bool aliveAt9pm;
-
         public bool HasActiveMatch => matchId != null;
 
         public void Reset()
@@ -50,9 +49,6 @@ namespace LCRanked
             survived = false;
             aliveAt2pm = false;
             aliveAt9pm = false;
-
-            
-
         }
     }
 }

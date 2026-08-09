@@ -7,7 +7,7 @@
   "targets": {
     ".NETStandard,Version=v2.1": {},
     ".NETStandard,Version=v2.1/": {
-      "LCRanked/0.3.21": {
+      "LCRanked/0.3.9": {
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
           "Assembly-CSharp-firstpass": "0.0.0.0"
@@ -35,7 +35,7 @@
     }
   },
   "libraries": {
-    "LCRanked/0.3.21": {
+    "LCRanked/0.3.9": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
