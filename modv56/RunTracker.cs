@@ -14,7 +14,7 @@ namespace LCRanked
         public static bool AliveAt2pm { get; private set; }
         public static bool AliveAt9pm { get; private set; }
 
-        private const float TwoPmNormalized = 0.375f;
+        private const float TwoPmNormalized = 0.4f;
         private const float NinePmNormalized = 0.8125f;
 
         public static void BeginTracking(MatchState match)

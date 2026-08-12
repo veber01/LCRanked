@@ -17,7 +17,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.91";
+        public const string PluginVersion = "0.3.94";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -31,8 +31,8 @@ namespace LCRanked
         internal DebugUI DebugUi { get; set; }
 
 
-        public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
-        //public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
+        //public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
+        public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
         public string LocalPlayerName = "Player";
 
 
@@ -101,10 +101,15 @@ namespace LCRanked
 
             try
             {
+                if (ES3.FileExists("LCSaveFile99"))
+                {
+                    ES3.CopyFile("LCSaveFile99", "LCSaveFile98");
+                    Logger.LogInfo("Extremely edge case: Renamed lc99 to lc98 before restore.");
+                }
                 if (ES3.FileExists(saveFile))
                 {
                     ES3.CopyFile(saveFile, "LCSaveFile99");
-                    Logger.LogInfo("Renamed what is supposed to be a ranked file (safety measure, instead of deletion).");
+                    Logger.LogInfo("Renamed what is supposed to be a backup file to LCSaveFile99 (safety measure, instead of deletion).");
                 }
 
                 ES3.CopyFile(backupFile, saveFile);
@@ -171,7 +176,7 @@ namespace LCRanked
                 {
                     RequestPlayerStats();
                     StartCoroutine(CreateLeaderboardLinkNextFrame());
-                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
+                    //LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
                 }
                 return;
             }
@@ -374,54 +379,14 @@ namespace LCRanked
                 if (GUILayout.Button(plugin.IsInQueue ? "Leave queue" : "Join queue"))
                 {
                     Queue.ToggleQueueFromMenu();
+                    Plugin.Log.LogError("Button pressed");
                 }
             }
-            else
-            {
-                GUILayout.Label("Match in progress!");
-            }
             GUILayout.EndVertical();
-
             GUILayout.Space(20f);
-
-            GUILayout.BeginVertical();
-            GUILayout.Label("Stats", GUI_HeaderStyle());
-
-            if (!plugin.HasStatsRecord)
-            {
-                GUILayout.Label("Unranked - finish a ranked match to get rated.");
-            }
-            else
-            {
-                var s = plugin.LocalStats;
-                GUILayout.BeginHorizontal();
-                GUILayout.BeginVertical();
-                GUILayout.Label($"Name: {s.playerName}");
-                GUILayout.Label($"Leaderboard # {(s.leaderboardRank?.ToString() ?? "-")} / {s.leaderboardTotal}");
-                GUILayout.EndVertical();
-                GUILayout.BeginVertical();
-                GUILayout.Label($"Elo: {s.rating}");
-                GUILayout.Label($"Wins: {s.wins}");
-                GUILayout.Label($"Losses: {s.losses}");
-                GUILayout.EndVertical();
-                GUILayout.EndHorizontal();
-
-                GUILayout.Space(6f);
-                GUILayout.Label($"Win rate: {s.winRate:P0}");
-                GUILayout.Label($"Best collected: {s.bestCollectedValue}");
-                GUILayout.Label($"Avg collected: {s.avgCollectedValue}");
-                GUILayout.Label($"Survival rate: {s.survivalRate:P0}");
-                GUILayout.Label($"Streak: {(s.currentStreak >= 0 ? "W" + s.currentStreak : "L" + (-s.currentStreak))}");
-                GUILayout.Label($"Playtime: {s.rankedPlaytimeSeconds / 3600f:F1} hrs");
-                GUILayout.Space(6f);
-                GUILayout.Label($"ID: {s.playerId}");
-            }
-            GUILayout.EndVertical();
-
             GUILayout.EndHorizontal();
             GUI.DragWindow();
         }
-
 
         private GUIStyle _headerStyle;
         private GUIStyle GUI_HeaderStyle()

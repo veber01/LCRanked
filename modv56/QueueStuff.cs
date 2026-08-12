@@ -274,13 +274,19 @@ namespace LCRanked
         public static void OnMatchResult(JObject msg)
         {
             Plugin.Log.LogInfo($"[LCRanked] Match result: winner={msg["winnerName"]}");
-            Display.DisplayTip("LC Ranked", $"Match finished! Winner: {msg["winnerName"]}");
+            if(HUDManager.Instance != null)
+            {
+                Display.DisplayTip("LC Ranked", $"Match finished! Winner: {msg["winnerName"]}");
+            }
             foreach (var placement in msg["placements"])
             {
                 Plugin.Log.LogInfo($"  #{placement["placement"]} {placement["playerName"]}");
             }
             Plugin.CurrentMatch.Reset();
-            RankedHUD.Remove();
+            if (RankedHUD.Instance != null)
+            {
+                RankedHUD.Remove();
+            }
         }
 
         public static void StartQueueStatusPolling()

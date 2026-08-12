@@ -35,6 +35,7 @@ namespace LCRanked
             AccessTools.MethodDelegate<Action<RoundManager>>(AccessTools.Method(typeof(RoundManager), "SpawnWeedEnemies"));
 
 
+
         public static void PlanEnemySpawnsForWholeDay(RoundManager rm)
         {
             if (ranplan == true)
@@ -46,13 +47,13 @@ namespace LCRanked
             plannedSpawns.Clear();
             batchCumulativeCounts.Clear();
             nextPlannedIndex = 0;
-            currentBatchIndex = -1;
+            currentBatchIndex = -1; //thanks ak
+            WeatherHelper(rm);
 
             planningRandom = new System.Random(StartOfRound.Instance.randomMapSeed + 918273); //thanks ak
 
-            int enemyRushIndex = -1;//enemyRushIndexRef(rm); v81
+            int enemyRushIndex = -1;
             var shadowNumberSpawned = new int[rm.currentLevel.Enemies.Count];
-            int minSpawnCount = (int)TimeOfDay.Instance.currentWeatherVariable;
 
             int totalHours = rm.timeScript.numberOfHours;
             for (int hour = 0; hour < totalHours; hour += rm.hourTimeBetweenEnemySpawnBatches)
@@ -66,9 +67,11 @@ namespace LCRanked
                         chance + (float)Mathf.Abs(TimeOfDay.Instance.daysUntilDeadline - 3) / 1.6f - rm.currentLevel.spawnProbabilityRange,
                         chance + rm.currentLevel.spawnProbabilityRange,
                         (float)planningRandom.NextDouble()),
-                    minSpawnCount, 20f));
+                    rm.minEnemiesToSpawn, 20f));
 
                 if (enemyRushIndex != -1) countThisBatch += 2;
+
+
 
                 float batchStartTime = rm.timeScript.lengthOfHours * (float)hour;
                 float batchWindow = rm.timeScript.lengthOfHours * (float)rm.hourTimeBetweenEnemySpawnBatches;
@@ -92,7 +95,6 @@ namespace LCRanked
 
             Plugin.Log.LogWarning($"[LCRanked] Enemy plan built: {plannedSpawns.Count} enemies planned across {batchCumulativeCounts.Count} batches.");
             LogFullDayPlan(rm);
-            Plugin.Log.LogInfo($"Current weather type: {TimeOfDay.Instance.currentLevelWeather}, min spawn count: {minSpawnCount}");
         }
 
         private static void LogFullDayPlan(RoundManager rm)
@@ -274,6 +276,33 @@ namespace LCRanked
                 Plugin.Log.LogInfo($"Could not spawn more enemies; vents #: {rm.allEnemyVents.Length}. CannotSpawnMoreInsideEnemies: {rm.cannotSpawnMoreInsideEnemies}");
             }
         }
+
+        private static void WeatherHelper(RoundManager rm)
+        {
+            var currentWeather = TimeOfDay.Instance.currentLevelWeather;
+            if (currentWeather == LevelWeatherType.None || rm.currentLevel.randomWeathers == null)
+            {
+                return;
+            }
+            for (int i = 0; i < rm.currentLevel.randomWeathers.Length; i++)
+            {
+                if (rm.currentLevel.randomWeathers[i].weatherType != currentWeather)
+                {
+                    continue;
+                }
+                float weatherVariable = rm.currentLevel.randomWeathers[i].weatherVariable;
+                TimeOfDay.Instance.currentWeatherVariable = weatherVariable;
+                TimeOfDay.Instance.currentWeatherVariable2 = rm.currentLevel.randomWeathers[i].weatherVariable2;
+                if (currentWeather == LevelWeatherType.Eclipsed)
+                {
+                    rm.minEnemiesToSpawn = (int)weatherVariable;
+                    rm.minOutsideEnemiesToSpawn = (int)weatherVariable;
+                    Debug.Log($"[LCRanked] Eclipsed weather: minEnemiesToSpawn/minOutsideEnemiesToSpawn set to {(int)weatherVariable}.");
+                }
+                break;
+            }
+        }
+
 
 
 

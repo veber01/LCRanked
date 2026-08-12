@@ -208,7 +208,7 @@ namespace LCRanked.UI
             layout.childForceExpandWidth = false;
             layout.childForceExpandHeight = false;
 
-            usernameLabel = CreateFlexLabel(rowObj.transform, "USERNAME", 32, TextAlignmentOptions.Left, 1f, FontStyles.Bold);
+            usernameLabel = CreateFlexLabel(rowObj.transform, "Username", 32, TextAlignmentOptions.Left, 1f, FontStyles.Bold);
             rankLabel = CreateFixedLabel(rowObj.transform, "Rank: -", 18, TextAlignmentOptions.Left, 180);
             rankingLabel = CreateFixedLabel(rowObj.transform, "Ranking: -", 18, TextAlignmentOptions.Left, 130);
 
@@ -490,7 +490,7 @@ namespace LCRanked.UI
             int currentStreak = msg["currentStreak"]?.ToObject<int>() ?? 0;
             int playtimeSeconds = msg["rankedPlaytimeSeconds"]?.ToObject<int>() ?? 0;
 
-            usernameLabel.text = playerName.ToUpper();
+            usernameLabel.text = playerName;
             rankLabel.text = $"Rank: {rankLabelText}";
             rankingLabel.text = leaderboardRank.HasValue ? $"Ranking: #{leaderboardRank.Value}" : "Ranking: -";
             eloLabel.text = $"Elo: {rating}";
@@ -588,7 +588,7 @@ namespace LCRanked.UI
 
             CreateHistoryCell(rowObj.transform, $"             {moon} - {weather} - {resultText}", 240, resultColor);
             CreateHistoryCell(rowObj.transform, $"{selfCollected} - {opponentCollected}", 130, TextColor);
-            CreateHistoryCell(rowObj.transform, $"{usernameLabel.text} - {opponentName}", 220, TextColor);
+            CreateHistoryCell(rowObj.transform, $"{usernameLabel.text} - {opponentName}", 240, TextColor);
             CreateHistoryCell(rowObj.transform, ratingText, 80, TextColor);
 
             historyRowObjects.Add(rowObj);

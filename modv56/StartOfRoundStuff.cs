@@ -8,12 +8,6 @@ using System.Linq;
 
 namespace LCRanked
 {
-
-
-
-
-
-
     [HarmonyPatch(typeof(StartOfRound))]
     public static class MatchLeverPatch
     {
@@ -59,6 +53,15 @@ namespace LCRanked
             RoundManager.Instance.DespawnPropsAtEndOfRound(true);
             DeterministicEnemyPlanner.ranplan = false;
             MatchRunner.DespawnCruiser();
+            TimeOfDay.Instance.daysUntilDeadline = 2;
+            TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 2;
+            TimeOfDay.Instance.timeUntilDeadline = 2;
+
+            var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
+                startMatchLeverType.triggerScript.interactable = false;
+                startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
+                DeterministicEnemyPlanner.ranplan = false;
+                StartOfRound.Instance.SetMagnetOn(true);
             return;
         }
     }
