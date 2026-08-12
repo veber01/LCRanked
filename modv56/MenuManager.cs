@@ -91,7 +91,7 @@ namespace LCRanked
 
                 if (__instance.versionNumberText != null)
                 {
-                    __instance.versionNumberText.text = "v56 LCR 0.3.9a";
+                    __instance.versionNumberText.text = "v56 LCR 0.3.91a";
                     __instance.versionNumberText.autoSizeTextContainer = false;
                 }
             }

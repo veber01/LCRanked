@@ -52,6 +52,7 @@ namespace LCRanked
 
             int enemyRushIndex = -1;//enemyRushIndexRef(rm); v81
             var shadowNumberSpawned = new int[rm.currentLevel.Enemies.Count];
+            int minSpawnCount = (int)TimeOfDay.Instance.currentWeatherVariable;
 
             int totalHours = rm.timeScript.numberOfHours;
             for (int hour = 0; hour < totalHours; hour += rm.hourTimeBetweenEnemySpawnBatches)
@@ -65,7 +66,7 @@ namespace LCRanked
                         chance + (float)Mathf.Abs(TimeOfDay.Instance.daysUntilDeadline - 3) / 1.6f - rm.currentLevel.spawnProbabilityRange,
                         chance + rm.currentLevel.spawnProbabilityRange,
                         (float)planningRandom.NextDouble()),
-                    0, 20f));
+                    minSpawnCount, 20f));
 
                 if (enemyRushIndex != -1) countThisBatch += 2;
 
@@ -91,6 +92,7 @@ namespace LCRanked
 
             Plugin.Log.LogWarning($"[LCRanked] Enemy plan built: {plannedSpawns.Count} enemies planned across {batchCumulativeCounts.Count} batches.");
             LogFullDayPlan(rm);
+            Plugin.Log.LogInfo($"Current weather type: {TimeOfDay.Instance.currentLevelWeather}, min spawn count: {minSpawnCount}");
         }
 
         private static void LogFullDayPlan(RoundManager rm)

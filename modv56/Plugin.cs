@@ -17,7 +17,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.9";
+        public const string PluginVersion = "0.3.91";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -141,7 +141,7 @@ namespace LCRanked
 
             try
             {
-                Network = new NetworkClient("https://discordbot-production-7184.up.railway.app", Log);
+                Network = new NetworkClient("https://lcrankedserver-production.up.railway.app", Log);
                 Network.SetPlayerId(LocalPlayerId);
                 Network.Connected += Queue.HandleNetworkConnected;
                 _ = Network.ConnectAsync();
@@ -171,7 +171,7 @@ namespace LCRanked
                 {
                     RequestPlayerStats();
                     StartCoroutine(CreateLeaderboardLinkNextFrame());
-                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString();
+                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
                 }
                 return;
             }

@@ -115,7 +115,6 @@ namespace LCRanked
             }
             var targetLevel = startOfRound.levels[targetLevelIndex];
             ApplyForcedWeather(startOfRound, match.ruleset.weatherMS, targetLevel);
-
             SeedManager.Apply(startOfRound, match.ruleset.seed);
             //startOfRound.LocalPlayerDieEvent.AddListener((_, __) => RunTracker.OnLocalPlayerDied()); //v81
             RunTracker.BeginTracking(match);
@@ -377,8 +376,11 @@ namespace LCRanked
             targetLevel.overrideWeatherType = weatherType;
 
             TimeOfDay.Instance.currentLevelWeather = weatherType;
-
-            Plugin.Log.LogInfo($"[LCRanked] Forced weather '{weatherType}' on {targetLevel.PlanetName}");
+            for (int i = 0; i < RoundManager.Instance.currentLevel.randomWeathers.Length; i++)
+            {
+                TimeOfDay.Instance.currentWeatherVariable = RoundManager.Instance.currentLevel.randomWeathers[i].weatherVariable;
+                TimeOfDay.Instance.currentWeatherVariable2 = RoundManager.Instance.currentLevel.randomWeathers[i].weatherVariable2;
+            }
         }
 
 
