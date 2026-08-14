@@ -17,7 +17,7 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.94";
+        public const string PluginVersion = "0.3.951";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;

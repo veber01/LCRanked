@@ -15,7 +15,7 @@ namespace LCRanked
         [HarmonyPostfix]
         public static void SetLeverDisable(StartOfRound __instance)
         {
-
+            GameNetworkManager.Instance.maxAllowedPlayers = 2;
             __instance.StartCoroutine(PreStuff(__instance));
         }
 
@@ -38,6 +38,7 @@ namespace LCRanked
             {
                 Plugin.Log.LogError($"[LCRanked] Failed to set magnet on: {ex.Message}");
             }
+            GameNetworkManager.Instance.maxAllowedPlayers = 2;
         }
     }
 

@@ -41,6 +41,7 @@ namespace LCRanked
                 yield break;
             }
 
+
             int? levelId = null;
             string[] utilities = new string[0];
             string rulesetJson = match?.rulesetJson;
@@ -65,6 +66,20 @@ namespace LCRanked
                             else if (levelIdToken.Type == JTokenType.String && int.TryParse(levelIdToken.ToString(), out var parsedLevelId))
                             {
                                 levelId = parsedLevelId;
+                            }
+
+                            if (obj.TryGetValue("mode", out var modeToken))
+                            {
+                                string mode = modeToken.ToString();
+                                if (mode == "solo_2p")
+                                {
+                                    if (startOfRound.connectedPlayersAmount > 0)
+                                    {
+                                        startOfRound.KickPlayer(1);
+                                        startOfRound.KickPlayer(2);
+                                        startOfRound.KickPlayer(3);
+                                    }
+                                }
                             }
                         }
 
