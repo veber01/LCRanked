@@ -13,10 +13,17 @@ namespace LCRanked
         public bool spawnCruiser;
     }
 
+    public class TeammateInfo
+    {
+        public string playerId;
+        public string playerName;
+    }
+
     public class ParticipantInfo
     {
         public string playerId;
         public string playerName;
+        public List<TeammateInfo> teammates = new List<TeammateInfo>();
     }
 
 

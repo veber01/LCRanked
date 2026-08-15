@@ -15,6 +15,7 @@ using System.Text;
 using Steamworks;
 using Steamworks.Data;
 using System.Diagnostics;
+using System.Linq;
 
 namespace LCRanked
 {
@@ -100,7 +101,20 @@ namespace LCRanked
         {
             if (joinQueue)
             {
-                Plugin.Network.JoinQueue(Plugin.LocalPlayerId, Plugin.LocalPlayerName, Plugin.LocalPlayerId);
+                if (Plugin.SelectedQueueMode == QueueModeSelection.Duo)
+                {
+                    var partner = GetDuoPartnerFromLobby();
+                    if (partner == null)
+                    {
+                        Display.DisplayTip("LC Ranked", "Couldn't find your duo - lobby needs 2 players to queue.", isWarning: true);
+                        return;
+                    }
+                    Plugin.Network.JoinQueue(Plugin.LocalPlayerId, Plugin.LocalPlayerName, Plugin.LocalPlayerId, "duo_4p", partner.Value.partnerId, partner.Value.partnerName);
+                }
+                else
+                {
+                    Plugin.Network.JoinQueue(Plugin.LocalPlayerId, Plugin.LocalPlayerName, Plugin.LocalPlayerId, "solo_2p");
+                }
                 Plugin._inQueue = true;
             }
             else
@@ -108,6 +122,35 @@ namespace LCRanked
                 Plugin.Network.LeaveQueue(Plugin.LocalPlayerId);
                 Plugin._inQueue = false;
             }
+        }
+
+        public static (string partnerId, string partnerName)? GetDuoPartnerFromLobby()
+        {
+            var lobby = GameNetworkManager.Instance?.currentLobby;
+            if (lobby == null)
+            {
+                Plugin.Log.LogWarning("[LCRanked] No active Steam lobby.");
+                return null;
+            }
+
+            var others = lobby.Value.Members
+                .Where(m => m.Id != SteamClient.SteamId)
+                .ToList();
+
+            if (others.Count == 0)
+            {
+                Plugin.Log.LogWarning("[LCRanked] No other player in your lobby to queue as duo.");
+                return null;
+            }
+
+            if (others.Count > 1)
+            {
+                Plugin.Log.LogWarning($"[LCRanked] Duo queue needs 2 players in the lobby.");
+                return null;
+            }
+
+            var partner = others[0];
+            return (partner.Id.Value.ToString(), partner.Name);
         }
 
         public static void HandleServerMessage(JObject msg)

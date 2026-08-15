@@ -8,16 +8,18 @@ using Newtonsoft.Json.Linq;
 using Unity.Netcode;
 using System;
 using LCRanked.UI;
+using Steamworks;
 
 
 namespace LCRanked
 {
+    public enum QueueModeSelection { Solo, Duo }
     [BepInPlugin(PluginGuid, PluginName, PluginVersion)]
     public class Plugin : BaseUnityPlugin
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.951";
+        public const string PluginVersion = "0.3.952";
 
         internal static ManualLogSource Log;
         internal static Plugin Instance;
@@ -31,8 +33,8 @@ namespace LCRanked
         internal DebugUI DebugUi { get; set; }
 
 
-        //public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
-        public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
+        public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
+        //public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
         public string LocalPlayerName = "Player";
 
 
@@ -44,6 +46,7 @@ namespace LCRanked
         public bool IsInQueue => _inQueue;
         public int QueuePlayerCount;
         public int PlayersInGameCount;
+        public QueueModeSelection SelectedQueueMode = QueueModeSelection.Solo;
         public class PlayerStats
         {
             public string playerId;
@@ -176,7 +179,7 @@ namespace LCRanked
                 {
                     RequestPlayerStats();
                     StartCoroutine(CreateLeaderboardLinkNextFrame());
-                    //LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
+                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
                 }
                 return;
             }
@@ -373,6 +376,28 @@ namespace LCRanked
             GUILayout.Label($"In queue: {plugin.IsInQueue}");
             GUILayout.Label($"Players in queue: {plugin.QueuePlayerCount}");
             GUILayout.Label($"Players in game: {plugin.PlayersInGameCount}");
+            GUILayout.Space(6f);
+            if (Plugin.track == false && !plugin.IsInQueue)
+            {
+                GUILayout.BeginHorizontal();
+                bool soloSelected = GUILayout.Toggle(plugin.SelectedQueueMode == QueueModeSelection.Solo, "Solo");
+                bool duoSelected = GUILayout.Toggle(plugin.SelectedQueueMode == QueueModeSelection.Duo, "Duo");
+                GUILayout.EndHorizontal();
+
+                if (soloSelected && plugin.SelectedQueueMode != QueueModeSelection.Solo)
+                {
+                    plugin.SelectedQueueMode = QueueModeSelection.Solo;
+                }
+                else if (duoSelected && plugin.SelectedQueueMode != QueueModeSelection.Duo)
+                {
+                    plugin.SelectedQueueMode = QueueModeSelection.Duo;
+                }
+            }
+            else
+            {
+                GUILayout.Label($"Mode: {plugin.SelectedQueueMode}");
+            }
+
             GUILayout.Space(6f);
             if (Plugin.track == false)
             {

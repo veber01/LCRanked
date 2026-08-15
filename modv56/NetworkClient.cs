@@ -284,9 +284,9 @@ namespace LCRanked
             }
         }
 
-        public void JoinQueue(string playerId, string playerName, string deviceId, string mode = "solo_2p")
+        public void JoinQueue(string playerId, string playerName, string deviceId, string mode = "solo_2p", string partnerId = null, string partnerName = null)
         {
-            _ = SendAsync(new { type = "join_queue", playerId, playerName, deviceId, mode });
+            _ = SendAsync(new { type = "join_queue", playerId, playerName, deviceId, mode, partnerId, partnerName });
         }
 
         public void LeaveQueue(string playerId)
