@@ -1,10 +1,7 @@
 using HarmonyLib;
-using BepInEx;
-using System.Reflection;
 using System.Collections;
 using UnityEngine;
 using Unity.Netcode;
-using System.Linq;
 
 namespace LCRanked
 {
@@ -23,10 +20,10 @@ namespace LCRanked
         {
             yield return new WaitForSeconds(1f);
 
-                var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
-                startMatchLeverType.triggerScript.interactable = false;
-                startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
-                DeterministicEnemyPlanner.ranplan = false;
+            var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
+            startMatchLeverType.triggerScript.interactable = false;
+            startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
+            DeterministicEnemyPlanner.ranplan = false;
             try
             {
                 instance.SetMagnetOn(true);
@@ -49,20 +46,27 @@ namespace LCRanked
         [HarmonyPostfix]
         private static void tbhitsalotofstuff()
         {
+            if (NetworkManager.Singleton.IsHost)
+            {
+                RoundManager.Instance.DespawnPropsAtEndOfRound(true);
+                MatchRunner.DespawnCruiser();
+            }
             StartOfRound sor = StartOfRound.Instance;
             Plugin.collected = sor.scrapCollectedLastRound;
-            RoundManager.Instance.DespawnPropsAtEndOfRound(true);
+
             DeterministicEnemyPlanner.ranplan = false;
-            MatchRunner.DespawnCruiser();
             TimeOfDay.Instance.daysUntilDeadline = 2;
             TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 2;
             TimeOfDay.Instance.timeUntilDeadline = 2;
-
             var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
-                startMatchLeverType.triggerScript.interactable = false;
-                startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
-                DeterministicEnemyPlanner.ranplan = false;
+            startMatchLeverType.triggerScript.interactable = false;
+            startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
+            if (NetworkManager.Singleton.IsHost)
+            {
+
                 StartOfRound.Instance.SetMagnetOn(true);
+            }
+            DeterministicEnemyPlanner.ranplan = false;
             return;
         }
     }

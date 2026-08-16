@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Newtonsoft.Json.Linq;
 using TMPro;
 using UnityEngine;
@@ -84,11 +82,9 @@ namespace LCRanked.UI
             });
         }
     }
-
     public class ProfileWindowUI : MonoBehaviour
     {
         public static ProfileWindowUI Instance;
-
         private string currentPlayerId;
         private TMP_InputField searchField;
         private TextMeshProUGUI usernameLabel;
@@ -99,7 +95,6 @@ namespace LCRanked.UI
         private TextMeshProUGUI totalMatchesLabel, totalPlaytimeLabel;
         private Transform historyContainer;
         private readonly List<GameObject> historyRowObjects = new List<GameObject>();
-
         private static readonly Color PanelBg = new Color(0.15f, 0.03f, 0.03f, 0.97f);
         private static readonly Color PanelBorder = new Color(0.35f, 0.08f, 0.08f, 1f);
         private static readonly Color RowBg = new Color(0.32f, 0.10f, 0.06f, 1f);
@@ -128,7 +123,6 @@ namespace LCRanked.UI
                 Instance = canvasObj.AddComponent<ProfileWindowUI>();
                 Instance.BuildUI(canvas.transform);
             }
-
             Instance.LoadProfile(playerId);
         }
 

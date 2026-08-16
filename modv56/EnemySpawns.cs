@@ -34,8 +34,6 @@ namespace LCRanked
         private static readonly Action<RoundManager> spawnWeed =
             AccessTools.MethodDelegate<Action<RoundManager>>(AccessTools.Method(typeof(RoundManager), "SpawnWeedEnemies"));
 
-
-
         public static void PlanEnemySpawnsForWholeDay(RoundManager rm)
         {
             if (ranplan == true)
@@ -128,7 +126,6 @@ namespace LCRanked
             return weights.Count - 1;
         }
 
-
         private static int ChooseWeightedEnemyIndex(RoundManager rm, int[] shadowNumberSpawned, float hourFraction, int enemyRushIndex, System.Random planningRandom)
         {
             var weights = new List<int>();
@@ -197,14 +194,14 @@ namespace LCRanked
                 if (rm.currentEnemyPower >= rm.currentMaxInsidePower && (rm.currentEnemyPower + enemyType.PowerLevel) > rm.currentMaxInsidePower) //thanks ak
                 {
                     rm.cannotSpawnMoreInsideEnemies = true;
-                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - power cap reached.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName})");
                     break;
                 }
 
                 var freeVents = rm.allEnemyVents.Where(v => !v.occupied).ToList();
                 if (freeVents.Count == 0)
                 {
-                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName}) - no free vent.");
+                    Plugin.Log.LogInfo($"[LCRanked] Deferring planned spawn ({enemyType.enemyName})");
                     break;
                 }
                 EnemyVent freeVent = freeVents[planningRandom.Next(0, freeVents.Count)];
@@ -255,7 +252,6 @@ namespace LCRanked
         {
             if (Mathf.Approximately(rm.timeScript.currentDayTime, lastAdvanceDayTime))
             {
-                Plugin.Log.LogInfo("[LCRanked] AdvanceHour fired again, ignoring duplicate.");
                 return;
             }
             lastAdvanceDayTime = rm.timeScript.currentDayTime;

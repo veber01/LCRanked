@@ -19,7 +19,6 @@ namespace LCRanked
         private CancellationTokenSource _cts;
         private bool _isConnected;
         private string _playerId;
-
         public readonly ConcurrentQueue<JObject> IncomingMessages = new ConcurrentQueue<JObject>();
         public bool IsConnected => _isConnected;
         public bool IsConnecting { get; private set; }
@@ -97,7 +96,6 @@ namespace LCRanked
             {
                 await ConnectWithRetryAsync();
                 _isConnected = true;
-                _log.LogInfo($"[LCRanked] Connected to matchmaking server.");
                 Connected?.Invoke();
                 _ = ReceiveLoop(_cts.Token);
             }
@@ -398,7 +396,6 @@ namespace LCRanked
                 var response = await _httpClient.GetAsync(uri, _cts?.Token ?? CancellationToken.None);
                 if (!response.IsSuccessStatusCode)
                 {
-                    _log.LogError($"[LCRanked] Profile stats request failed: {(int)response.StatusCode}");
                     return;
                 }
 

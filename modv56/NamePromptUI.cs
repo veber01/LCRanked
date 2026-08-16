@@ -1,4 +1,4 @@
-using System;
+
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -97,7 +97,7 @@ namespace LCRanked
             layout.childForceExpandWidth = true;
 
             CreateLabel(panelObj.transform, "ENTER YOUR NAME", 28, TitleColor, FontStyles.Bold, 40);
-            CreateLabel(panelObj.transform, "This is one-time only - your name CANNOT be changed later!", 16, WarningColor, FontStyles.Normal, 48);
+            CreateLabel(panelObj.transform, "This is one-time only! your name CANNOT be changed later!", 16, WarningColor, FontStyles.Normal, 48);
             CreateInputField(panelObj.transform);
             statusText = CreateLabel(panelObj.transform, "", 15, ErrorColor, FontStyles.Normal, 30);
             CreateConfirmButton(panelObj.transform);

@@ -4,12 +4,9 @@ using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Newtonsoft.Json.Linq;
 using Unity.Netcode;
 using System;
 using LCRanked.UI;
-using Steamworks;
-
 
 namespace LCRanked
 {
@@ -19,13 +16,10 @@ namespace LCRanked
     {
         public const string PluginGuid = "com.happyness.LCRanked";
         public const string PluginName = "LC Ranked";
-        public const string PluginVersion = "0.3.952";
-
+        public const string PluginVersion = "0.3.955";
         internal static ManualLogSource Log;
         internal static Plugin Instance;
-
         public NetworkClient Network;
-
         public static int collected;
         public QuickMenuManager qmm;
         public MatchState CurrentMatch = new MatchState();
@@ -33,11 +27,11 @@ namespace LCRanked
         internal DebugUI DebugUi { get; set; }
 
 
-        public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
-        //public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
+        //public string LocalPlayerId = SystemInfo.deviceUniqueIdentifier;  //remove comment before shipping this is only for testing stuff
+        public string LocalPlayerId { get; } = Guid.NewGuid().ToString();
+
+
         public string LocalPlayerName = "Player";
-
-
         private Harmony _harmony;
         public bool? _pendingQueueToggle;
         public bool _inQueue;
@@ -68,7 +62,6 @@ namespace LCRanked
 
         public PlayerStats LocalStats;
         public bool HasStatsRecord;
-
         public async void RequestPlayerStats()
         {
             if (Network == null || !Network.IsConnected)
@@ -77,8 +70,6 @@ namespace LCRanked
             }
             await Network.RequestPlayerStatsAsync(LocalPlayerId);
         }
-
-
         private void Awake()
         {
             RestoreBackupSave();
@@ -87,21 +78,17 @@ namespace LCRanked
             SceneManager.sceneLoaded += StaticOnSceneLoaded;
             DontDestroyOnLoad(gameObject);
             InitializePlugin();
-
         }
         private void RestoreBackupSave()
         {
             string backupFile = "Save1Temp";
             string saveFile = "LCSaveFile1";
-
             if (!ES3.FileExists(backupFile))
             {
                 Logger.LogInfo("No backup found.");
                 return;
             }
-
             Logger.LogWarning("Backup save detected! Restoring original save...");
-
             try
             {
                 if (ES3.FileExists("LCSaveFile99"))
@@ -114,11 +101,8 @@ namespace LCRanked
                     ES3.CopyFile(saveFile, "LCSaveFile99");
                     Logger.LogInfo("Renamed what is supposed to be a backup file to LCSaveFile99 (safety measure, instead of deletion).");
                 }
-
                 ES3.CopyFile(backupFile, saveFile);
-
                 ES3.DeleteFile(backupFile);
-
                 Logger.LogInfo("Save restored.");
             }
             catch (Exception ex)
@@ -146,7 +130,6 @@ namespace LCRanked
             {
                 return;
             }
-
             try
             {
                 Network = new NetworkClient("https://lcrankedserver-production.up.railway.app", Log);
@@ -157,16 +140,13 @@ namespace LCRanked
                 _harmony.PatchAll(typeof(Plugin).Assembly);
                 Runner = gameObject.AddComponent<MatchRunner>();
                 EnsureDebugUI();
-
                 _initialized = true;
-                Log.LogInfo("[LCRanked] Plugin initialization complete.");
             }
             catch (System.Exception ex)
             {
                 Log.LogError($"[LCRanked] Plugin initialization failed: {ex.Message}");
             }
         }
-
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             if (scene.name == "MainMenu" || scene.name == "InitScene" || scene.name == "InitSceneLaunchOptions")
@@ -179,22 +159,19 @@ namespace LCRanked
                 {
                     RequestPlayerStats();
                     StartCoroutine(CreateLeaderboardLinkNextFrame());
-                    LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
+                    //LocalPlayerId = Steamworks.SteamClient.SteamId.ToString(); //remove comment before shipping this is only for testing stuff
                 }
                 return;
             }
             LocalPlayerName = GameNetworkManager.Instance.username;
             EnsureDebugUI();
         }
-
         private IEnumerator CreateLeaderboardLinkNextFrame()
         {
             yield return null;
             LeaderboardMenuLink.Create();
             MyProfileMenuLink.Create();
         }
-
-
         private void EnsureDebugUI()
         {
             if (DebugUi != null)
@@ -215,7 +192,6 @@ namespace LCRanked
             DebugUi = debugUi;
             debugUi.SetPlugin(this);
         }
-
         private void Update()
         {
             while (Network != null && Network.IncomingMessages.TryDequeue(out var msg))
@@ -225,7 +201,6 @@ namespace LCRanked
             Queue.FlushPendingQueueToggle();
 
         }
-
         private void OnDestroy()
         {
             SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -233,17 +208,14 @@ namespace LCRanked
             Network?.Dispose();
         }
     }
-
     public class DebugUI : MonoBehaviour
     {
         public static DebugUI Instance;
         public static bool _menuOpen;
         public Coroutine _queueStatusPoller;
         public bool _pollingActive;
-
         public Rect _windowRect = new Rect(700, 20, 500, 350);
         public Plugin _plugin;
-
         public static void SetMenuForAll(bool value)
         {
             if (GameNetworkManager.Instance != null && NetworkManager.Singleton != null && !NetworkManager.Singleton.IsHost)
@@ -251,7 +223,6 @@ namespace LCRanked
                 _menuOpen = false;
                 return;
             }
-
             var plugin = ResolvePluginInstance();
             var ui = plugin != null ? plugin.DebugUi : null;
             if (ui == null)
@@ -265,13 +236,11 @@ namespace LCRanked
 
                 ui = Instance;
             }
-
             if (plugin != null)
             {
                 plugin.DebugUi = ui;
                 ui.SetPlugin(plugin);
             }
-
             _menuOpen = value;
             if (value && ui != null)
             {
@@ -287,7 +256,6 @@ namespace LCRanked
             _menuOpen = false;
             Queue.StopQueueStatusPolling();
         }
-
         private void Awake()
         {
             if (NetworkManager.Singleton != null && !NetworkManager.Singleton.IsHost)
@@ -295,7 +263,6 @@ namespace LCRanked
                 Destroy(gameObject);
                 return;
             }
-
             Instance = this;
             var plugin = ResolvePluginInstance();
             if (plugin != null)
@@ -304,20 +271,17 @@ namespace LCRanked
             }
             enabled = true;
         }
-
         private void OnDestroy()
         {
             if (Instance == this)
             {
                 Instance = null;
             }
-
             if (Plugin.Instance != null && Plugin.Instance.DebugUi == this)
             {
                 Plugin.Instance.DebugUi = null;
             }
         }
-
         public void SetPlugin(Plugin plugin)
         {
             _plugin = plugin;
@@ -327,27 +291,22 @@ namespace LCRanked
                 plugin.DebugUi = this;
             }
         }
-
         private static Plugin ResolvePluginInstance()
         {
             if (Plugin.Instance != null)
             {
                 return Plugin.Instance;
             }
-
             var resolved = UnityEngine.Object.FindObjectOfType<Plugin>();
             if (resolved != null)
             {
                 Plugin.Instance = resolved;
             }
-
             return resolved;
         }
-
         private void OnGUI()
         {
             if (!_menuOpen) return;
-
             _windowRect = GUILayout.Window(
                 0,
                 _windowRect,
@@ -355,7 +314,6 @@ namespace LCRanked
                 "LC Ranked"
             );
         }
-
         private void DrawWindow(int windowID)
         {
             var plugin = _plugin != null ? _plugin : ResolvePluginInstance();
@@ -365,12 +323,10 @@ namespace LCRanked
                 GUI.DragWindow();
                 return;
             }
-
             if (_plugin != plugin)
             {
                 SetPlugin(plugin);
             }
-
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical(GUILayout.Width(180));
             GUILayout.Label($"In queue: {plugin.IsInQueue}");
@@ -383,7 +339,6 @@ namespace LCRanked
                 bool soloSelected = GUILayout.Toggle(plugin.SelectedQueueMode == QueueModeSelection.Solo, "Solo");
                 bool duoSelected = GUILayout.Toggle(plugin.SelectedQueueMode == QueueModeSelection.Duo, "Duo");
                 GUILayout.EndHorizontal();
-
                 if (soloSelected && plugin.SelectedQueueMode != QueueModeSelection.Solo)
                 {
                     plugin.SelectedQueueMode = QueueModeSelection.Solo;
@@ -397,7 +352,6 @@ namespace LCRanked
             {
                 GUILayout.Label($"Mode: {plugin.SelectedQueueMode}");
             }
-
             GUILayout.Space(6f);
             if (Plugin.track == false)
             {
@@ -412,7 +366,6 @@ namespace LCRanked
             GUILayout.EndHorizontal();
             GUI.DragWindow();
         }
-
         private GUIStyle _headerStyle;
         private GUIStyle GUI_HeaderStyle()
         {
@@ -436,9 +389,7 @@ namespace LCRanked
                 {
                     DebugUI.SetMenuForAll(true);
                 }
-
             }
-
             [HarmonyPatch(nameof(QuickMenuManager.CloseQuickMenu))]
             [HarmonyPostfix]
             public static void OnCloseQuickMenu()
@@ -453,9 +404,5 @@ namespace LCRanked
         {
             HUDManager.Instance.DisplayTip(title, msg, isWarning, false, "LC_Tip1");
         }
-
-
     }
 }
-
-

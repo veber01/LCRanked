@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
 using Unity.Netcode;
-using LCRanked.UI;
 using System;
 using GameNetcodeStuff;
 using HarmonyLib;
@@ -31,13 +30,11 @@ namespace LCRanked
             var startOfRound = StartOfRound.Instance;
             if (startOfRound == null)
             {
-                Plugin.Log.LogError("[LCRanked] StartOfRound.Instance is null, can't start match.");
                 yield break;
             }
 
             if (!startOfRound.IsServer)
             {
-                Plugin.Log.LogError("[LCRanked] Not server/host - can't drive match start.");
                 yield break;
             }
 
@@ -405,11 +402,9 @@ namespace LCRanked
             {
                 DespawnCruiserObject(ref _spawnedCruiserMain);
                 DespawnCruiserObject(ref _spawnedCruiserSecondary);
-                Plugin.Log.LogInfo("[LCRanked] Cruiser despawned.");
             }
             catch (System.Exception ex)
             {
-                Plugin.Log.LogWarning($"[LCRanked] Error despawning cruiser: {ex.Message}");
             }
         }
 
@@ -429,12 +424,6 @@ namespace LCRanked
 
             obj = null;
         }
-
-
-
-
-        //KillPlayerEvent listener for v56
-
         [HarmonyPatch(typeof(PlayerControllerB), nameof(PlayerControllerB.KillPlayer))]
         public static class KillPlayerPatch
         {

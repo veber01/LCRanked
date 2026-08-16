@@ -7,7 +7,6 @@ namespace LCRanked.UI
     public class RankedHUD : MonoBehaviour
     {
         public static RankedHUD Instance;
-
         public TextMeshProUGUI mmrText;
         private TextMeshProUGUI moonText;
         private TextMeshProUGUI seedText;
@@ -21,23 +20,20 @@ namespace LCRanked.UI
                 return;
 
             GameObject canvasObj = new GameObject("LC Ranked HUD");
-
             Canvas canvas = canvasObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 5000;
-
             canvasObj.AddComponent<CanvasScaler>();
             canvasObj.AddComponent<GraphicRaycaster>();
 
             DontDestroyOnLoad(canvasObj);
-
             Instance = canvasObj.AddComponent<RankedHUD>();
             Instance.BuildUI(canvas.transform);
         }
 
         public static void Remove()
         {
-        Destroy(Instance.gameObject);
+            Destroy(Instance.gameObject);
         }
 
         private void BuildUI(Transform parent)
@@ -65,11 +61,11 @@ namespace LCRanked.UI
 
             CreateHeader(panelObj.transform);
 
-            mmrText = CreateLabel(panelObj.transform, "Unrated");
-            moonText = CreateLabel(panelObj.transform, "Titan");
-            weatherText = CreateLabel(panelObj.transform, "Weather: Clear");
-            seedText = CreateLabel(panelObj.transform, "Seed: 4928810");
-            opponentText = CreateLabel(panelObj.transform, "Opponent: Playing...");
+            mmrText = CreateLabel(panelObj.transform, "0");
+            moonText = CreateLabel(panelObj.transform, "-");
+            weatherText = CreateLabel(panelObj.transform, "Weather: -");
+            seedText = CreateLabel(panelObj.transform, "Seed: -");
+            opponentText = CreateLabel(panelObj.transform, "Opponent: Doesnt exists");
             matchIdText = CreateLabel(panelObj.transform, "Match: -----");
         }
 
@@ -133,7 +129,7 @@ namespace LCRanked.UI
             matchIdText.text = $"Match: {id}";
             matchIdText.fontSize = 10;
         }
-                public void SetWeather(string weather)
+        public void SetWeather(string weather)
         {
             weatherText.text = $"Weather: {weather}";
         }

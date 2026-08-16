@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace LCRanked
 {
     public static class ResultReporter

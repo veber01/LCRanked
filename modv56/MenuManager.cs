@@ -1,10 +1,23 @@
 using System.Collections;
-using BepInEx;
 using HarmonyLib;
 using UnityEngine;
 
 namespace LCRanked
 {
+    [HarmonyPatch(typeof(StartOfRound))]
+
+
+    public static class JoinStuff
+    {
+        [HarmonyPatch("SetPlanetsWeather")]
+        [HarmonyPrefix]
+        private static void Joinstuff()
+        {
+            LeaderboardMenuLink.Hide();
+            UI.MyProfileMenuLink.Hide();
+        }
+    }
+
     [HarmonyPatch(typeof(MenuManager), nameof(MenuManager.ClickHostButton))]
     class HostButtonPatch
     {
@@ -91,8 +104,8 @@ namespace LCRanked
 
                 if (__instance.versionNumberText != null)
                 {
-                    __instance.versionNumberText.text = "v56 LCR 0.3.952a";
-                    __instance.versionNumberText.autoSizeTextContainer = false;
+                    __instance.versionNumberText.text = "v56 LCR 0.3.955a";
+                    __instance.versionNumberText.autoSizeTextContainer = true;
                 }
             }
         }

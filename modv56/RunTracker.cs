@@ -10,13 +10,10 @@ namespace LCRanked
         private static MatchState _match;
         private static bool _tracking;
         private static bool _diedThisRun;
-
         public static bool AliveAt2pm { get; private set; }
         public static bool AliveAt9pm { get; private set; }
-
         private const float TwoPmNormalized = 0.4f;
         private const float NinePmNormalized = 0.8125f;
-
         public static void BeginTracking(MatchState match)
         {
             _match = match;
@@ -30,7 +27,6 @@ namespace LCRanked
         {
             if (!_tracking) return;
             _diedThisRun = true;
-            Plugin.Log.LogInfo("[LCRanked] Local player died.");
         }
 
 
@@ -52,7 +48,6 @@ namespace LCRanked
                         AliveAt9pm = true;
                     }
                 }
-
                 yield return new WaitForSeconds(0.5f);
             }
         }
@@ -67,11 +62,6 @@ namespace LCRanked
             _match.runFinished = true;
             _match.aliveAt2pm = AliveAt2pm;
             _match.aliveAt9pm = AliveAt9pm;
-
-            Plugin.Log.LogInfo(
-                $"[LCRanked] Run finished. Collected={_match.collectedValue} Survived={_match.survived} " +
-                $"AliveAt2pm={AliveAt2pm} AliveAt9pm={AliveAt9pm}");
-
             ResultReporter.Report(_match);
         }
 
@@ -87,7 +77,6 @@ namespace LCRanked
                     RankedHUD.Remove();
                 }
                 Plugin.track = false;
-
                 LCRanked.HostButtonPatch.DelayedRestore();
             }
         }

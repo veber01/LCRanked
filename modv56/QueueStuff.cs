@@ -1,33 +1,21 @@
 using System.Collections;
-using BepInEx;
-using BepInEx.Configuration;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using Newtonsoft.Json.Linq;
-using GameNetcodeStuff;
 using Unity.Netcode;
-using System;
 using LCRanked.UI;
-using System.Security.Cryptography;
-using System.Text;
-using Steamworks;
-using Steamworks.Data;
-using System.Diagnostics;
-using System.Linq;
 
 namespace LCRanked
 {
     public class Queue
     {
         public static Plugin Plugin => Plugin.Instance;
+        public static string id11 = null;
+        public static string name11 = null;
         public static void ToggleQueueFromMenu()
         {
             ToggleQueue();
-
             RequestQueueStatus();
-
         }
 
         public async static void RequestQueueStatus()
@@ -36,13 +24,11 @@ namespace LCRanked
             {
                 return;
             }
-
             if (!Plugin.Network.IsConnected)
             {
                 await Plugin.Network.ConnectAsync();
                 return;
             }
-
             await Plugin.Network.SendAsync(new { type = "queue_status", playerId = Plugin.LocalPlayerId });
         }
 
@@ -52,7 +38,6 @@ namespace LCRanked
             {
                 return;
             }
-
             if (!Plugin.Network.IsConnected)
             {
                 if (Plugin.Network.IsConnecting)
@@ -60,7 +45,6 @@ namespace LCRanked
                     Plugin._pendingQueueToggle = !Plugin._inQueue;
                     return;
                 }
-
                 Plugin._pendingQueueToggle = !Plugin._inQueue;
                 _ = Plugin.Network.ConnectAsync();
                 return;
@@ -91,7 +75,6 @@ namespace LCRanked
             {
                 return;
             }
-
             var pending = Plugin._pendingQueueToggle.Value;
             Plugin._pendingQueueToggle = null;
             ApplyQueueToggle(pending);
@@ -106,7 +89,7 @@ namespace LCRanked
                     var partner = GetDuoPartnerFromLobby();
                     if (partner == null)
                     {
-                        Display.DisplayTip("LC Ranked", "Couldn't find your duo - lobby needs 2 players to queue.", isWarning: true);
+                        Display.DisplayTip("LC Ranked", "Duo mode requires a teammate, bruh.", isWarning: true);
                         return;
                     }
                     Plugin.Network.JoinQueue(Plugin.LocalPlayerId, Plugin.LocalPlayerName, Plugin.LocalPlayerId, "duo_4p", partner.Value.partnerId, partner.Value.partnerName);
@@ -124,33 +107,30 @@ namespace LCRanked
             }
         }
 
+        [HarmonyPatch(typeof(QuickMenuManager))]
+        public static class MatchLeverPatch
+        {
+            [HarmonyPatch("AddUserToPlayerList")]
+            [HarmonyPostfix]
+            public static void GetID(ulong steamId, string playerName)
+            {
+                if (!NetworkManager.Singleton.IsHost)
+                {
+                    return;
+                }
+                id11 = steamId.ToString();
+                name11 = playerName;
+            }
+        }
         public static (string partnerId, string partnerName)? GetDuoPartnerFromLobby()
         {
-            var lobby = GameNetworkManager.Instance?.currentLobby;
-            if (lobby == null)
+            if (!NetworkManager.Singleton.IsHost)
             {
-                Plugin.Log.LogWarning("[LCRanked] No active Steam lobby.");
                 return null;
             }
 
-            var others = lobby.Value.Members
-                .Where(m => m.Id != SteamClient.SteamId)
-                .ToList();
-
-            if (others.Count == 0)
-            {
-                Plugin.Log.LogWarning("[LCRanked] No other player in your lobby to queue as duo.");
-                return null;
-            }
-
-            if (others.Count > 1)
-            {
-                Plugin.Log.LogWarning($"[LCRanked] Duo queue needs 2 players in the lobby.");
-                return null;
-            }
-
-            var partner = others[0];
-            return (partner.Id.Value.ToString(), partner.Name);
+        Plugin.Log.LogWarning(id11+name11);
+            return (id11, name11);
         }
 
         public static void HandleServerMessage(JObject msg)
@@ -317,7 +297,7 @@ namespace LCRanked
         public static void OnMatchResult(JObject msg)
         {
             Plugin.Log.LogInfo($"[LCRanked] Match result: winner={msg["winnerName"]}");
-            if(HUDManager.Instance != null)
+            if (HUDManager.Instance != null)
             {
                 Display.DisplayTip("LC Ranked", $"Match finished! Winner: {msg["winnerName"]}");
             }
