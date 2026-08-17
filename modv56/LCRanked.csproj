@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>LCRanked</AssemblyName>
     <Description>Seeded ranked mode for Lethal Company</Description>
-    <Version>0.3.955</Version>
+    <Version>0.3.956</Version>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
       https://api.nuget.org/v3/index.json

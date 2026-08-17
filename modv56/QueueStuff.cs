@@ -129,7 +129,7 @@ namespace LCRanked
                 return null;
             }
 
-        Plugin.Log.LogWarning(id11+name11);
+            Plugin.Log.LogWarning(id11 + name11);
             return (id11, name11);
         }
 
@@ -169,7 +169,6 @@ namespace LCRanked
                     break;
 
                 case "opponent_result_in":
-                    Plugin.Log.LogInfo("[LCRanked] Opponent has finished their run.");
                     RankedHUD.Instance.SetOpponent("Finished their run!");
                     break;
 
@@ -184,7 +183,7 @@ namespace LCRanked
 
                 case "match_aborted": // make match abortable : it only accounts for if a player is in a match so change me later please happy i beg
                     Display.DisplayTip("LC Ranked", "Match aborted!");
-                    Plugin.Log.LogWarning($"[LCRanked] Match aborted: {msg["reason"]}");
+                    DuoHudRelay.SendHideHud();
                     Plugin.CurrentMatch.Reset();
                     Plugin.track = false;
                     OnMatchAborted(msg);
@@ -279,7 +278,7 @@ namespace LCRanked
             Plugin.Runner.BeginMatch(Plugin.CurrentMatch);
             RankedHUD.Create();
             string holder = Plugin.CurrentMatch.ruleset.moon.ToString();
-            holder.Replace("Level", string.Empty);
+            holder = holder.Replace("Level", string.Empty);
             RankedHUD.Instance.SetMoon(holder);
             RankedHUD.Instance.SetSeed(Plugin.CurrentMatch.ruleset.seed);
             RankedHUD.Instance.SetMatchId(Plugin.CurrentMatch.matchId);
@@ -292,7 +291,13 @@ namespace LCRanked
             {
                 RankedHUD.Instance.SetMMR(Plugin.LocalStats.rating);
             }
+            DuoHudRelay.SendShowHud(
+    Plugin.CurrentMatch.matchId,
+    Plugin.CurrentMatch.ruleset.moon,
+    Plugin.CurrentMatch.ruleset.seed,
+    Plugin.CurrentMatch.ruleset.weatherMS);
         }
+
 
         public static void OnMatchResult(JObject msg)
         {
@@ -305,6 +310,7 @@ namespace LCRanked
             {
                 Plugin.Log.LogInfo($"  #{placement["placement"]} {placement["playerName"]}");
             }
+            DuoHudRelay.SendHideHud();
             Plugin.CurrentMatch.Reset();
             if (RankedHUD.Instance != null)
             {

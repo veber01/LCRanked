@@ -33,7 +33,10 @@ namespace LCRanked.UI
 
         public static void Remove()
         {
+            if (Instance == null)
+                return;
             Destroy(Instance.gameObject);
+            Instance = null;
         }
 
         private void BuildUI(Transform parent)

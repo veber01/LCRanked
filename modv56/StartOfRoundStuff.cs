@@ -13,6 +13,7 @@ namespace LCRanked
         public static void SetLeverDisable(StartOfRound __instance)
         {
             GameNetworkManager.Instance.maxAllowedPlayers = 2;
+            DuoHudRelay.EnsureHandlersRegistered();
             __instance.StartCoroutine(PreStuff(__instance));
         }
 
@@ -46,28 +47,59 @@ namespace LCRanked
         [HarmonyPostfix]
         private static void tbhitsalotofstuff()
         {
-            if (NetworkManager.Singleton.IsHost)
+            if (!Plugin.track)
             {
-                RoundManager.Instance.DespawnPropsAtEndOfRound(true);
+                return;
+            }
+            try
+            {
+                StartOfRound sor = StartOfRound.Instance;
+                if (sor == null) return;
+
+                Plugin.collected = sor.scrapCollectedLastRound;
+                RoundManager.Instance?.DespawnPropsAtEndOfRound(true);
+                DeterministicEnemyPlanner.ranplan = false;
                 MatchRunner.DespawnCruiser();
-            }
-            StartOfRound sor = StartOfRound.Instance;
-            Plugin.collected = sor.scrapCollectedLastRound;
+                TimeOfDay.Instance.daysUntilDeadline = 2;
+                TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 2;
+                TimeOfDay.Instance.timeUntilDeadline = 2;
 
-            DeterministicEnemyPlanner.ranplan = false;
-            TimeOfDay.Instance.daysUntilDeadline = 2;
-            TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 2;
-            TimeOfDay.Instance.timeUntilDeadline = 2;
-            var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
-            startMatchLeverType.triggerScript.interactable = false;
-            startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
-            if (NetworkManager.Singleton.IsHost)
+                var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
+                if (startMatchLeverType != null)
+                {
+                    startMatchLeverType.triggerScript.interactable = false;
+                    startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
+                }
+
+                sor.SetMagnetOn(true);
+            }
+            catch (System.Exception ex)
             {
-
-                StartOfRound.Instance.SetMagnetOn(true);
+                Plugin.Log.LogError($"[LCRanked] EndOfDayStuff failed: {ex.Message}");
             }
-            DeterministicEnemyPlanner.ranplan = false;
-            return;
+
+            // if (NetworkManager.Singleton.IsHost)
+            // {
+            //     RoundManager.Instance.DespawnPropsAtEndOfRound(true);
+            //     MatchRunner.DespawnCruiser();
+            // }
+            // StartOfRound sor = StartOfRound.Instance;
+            // Plugin.collected = sor.scrapCollectedLastRound;
+
+            // DeterministicEnemyPlanner.ranplan = false;
+            // TimeOfDay.Instance.daysUntilDeadline = 2;
+            // TimeOfDay.Instance.quotaVariables.deadlineDaysAmount = 2;
+            // TimeOfDay.Instance.timeUntilDeadline = 2;
+            // var startMatchLeverType = Object.FindObjectOfType<StartMatchLever>();
+            // startMatchLeverType.triggerScript.interactable = false;
+            // startMatchLeverType.triggerScript.hoverTip = "[ Que up!. ]";
+            // if (NetworkManager.Singleton.IsHost)
+            // {
+
+            //     StartOfRound.Instance.SetMagnetOn(true);
+            // }
+            // DeterministicEnemyPlanner.ranplan = false;
+            // return;
         }
     }
 }
